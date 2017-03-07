@@ -5,5 +5,4 @@
 /rmqbeat
 /rmqbeat.test
 *.pyc
-_meta/kibana
-vendor
+
