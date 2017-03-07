@@ -1,0 +1,16 @@
+################### Rmqbeat Configuration Example #########################
+
+############################# Rmqbeat ######################################
+
+rmqbeat:
+  # Defines how often an event is sent to the output
+  consumers:
+    - queue:
+        name: queue_name
+
+      exchange:
+        name: exchange.name
+
+      routing_key: "#"
+
+

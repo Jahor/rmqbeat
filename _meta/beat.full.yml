@@ -1,0 +1,71 @@
+################### Rmqbeat Configuration Example #########################
+
+############################# Rmqbeat ######################################
+
+rmqbeat:
+  # Defines how often an event is sent to the output
+  consumers:
+    - connection:
+        host: localhost
+        vhost: /
+        port: 5672
+        user: guest
+        password: guest
+        automatic_recovery: true
+        connect_retry_interval: 5s
+        connection_timeout: 2s
+        heartbeat: 10s
+        ssl:
+          enabled: false
+
+      queue:
+        name: log
+        durable: true
+        auto_delete: false
+        exclusive: false
+        arguments:
+
+      exchange:
+        name: amq.rabbitmq.log
+        type:
+        durable: true
+        auto_delete: false
+        exclusive: false
+        arguments:
+
+      routing_key: "#"
+
+      prefetch_count: 10
+      ack: true
+      tracer: false
+      document_type: 'rmqlog'
+
+      fields_under_root: false
+      fields:
+
+      tags: []
+
+    - connection:
+        host: localhost
+        vhost: /
+        port: 5672
+        user: guest
+        password: guest
+        automatic_recovery: true
+        connect_retry_interval: 5s
+        connection_timeout: 2s
+        heartbeat: 10s
+        ssl:
+          enabled: false
+
+      queue:
+        name: trace
+        durable: true
+        auto_delete: false
+        exclusive: false
+        arguments:
+
+      prefetch_count: 10
+      ack: true
+      tracer: true
+      document_type: 'rmqmessage'

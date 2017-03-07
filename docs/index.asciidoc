@@ -1,0 +1,5 @@
+= Rmqbeat Docs
+
+Welcome to the Rmqbeat documentation.
+
+

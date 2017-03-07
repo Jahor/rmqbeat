@@ -1,0 +1,167 @@
+- key: rmqbeat
+  title: rmqbeat
+  description:
+  fields:
+    - name: rabbitmq
+      type: group
+      required: true
+      description: >
+        RabbitMQ Message Metadata.
+      fields:
+        - name: action
+          required: false
+          type: keyword
+          description: >
+            For tracing either 'publish' or 'deliver'. For normal consumer always 'receive'.
+
+        - name: channel
+          required: false
+          type: long
+          description: >
+            Channel number of the client which performed action (trace only).
+
+        - name: connection
+          required: false
+          type: keyword
+          description: >
+            Connection name of the client which performed action (trace only).
+
+        - name: user
+          required: false
+          type: keyword
+          description: >
+            User that performed the action (trace only).
+
+        - name: consumer_tag
+          type: keyword
+          description: >
+            Consumer tag (direct consume only).
+
+        - name: headers
+          type: group
+          description: >
+            Message header field table.
+          fields: {}
+
+        - name: exchange
+          type: text
+          required: false
+          description: >
+            Specifies the name of the exchange that the message was originally published to. May be empty, indicating the default exchange.
+
+        - name: queue
+          type: text
+          required: false
+          description: >
+            Specifies the name of the queue message was consumed from (tracer only).
+
+        - name: routed_queues
+          required: false
+          type: list
+          description: >
+            Specifies names of queues message was routed to (tracer only).
+
+        - name: redelivered
+          required: false
+          type: boolean
+          description: >
+            Specifies if message was redelivered.
+
+        - name: routing_key
+          type: text
+          required: false
+          description: >
+            Specifies the routing key name specified when the message was published.
+
+        - name: payload
+          type: group
+          description: >
+            Payload Information
+          fields:
+            - name: size
+              required: true
+              type: long
+              description: >
+                Size of payload in bytes
+            - name: body
+              required: false
+              type: text
+              description: >
+                Decoded payload body
+
+        - name: properties
+          type: group
+          description: >
+            AMQP message properties.
+          fields:
+            - name: app_id
+              required: false
+              type: keyword
+              description: >
+                Creating application id.
+
+            - name: content_encoding
+              required: false
+              type: keyword
+              description: >
+                MIME content encoding.
+
+            - name: content_type
+              required: false
+              type: keyword
+              description: >
+                MIME content type.
+
+            - name: correlation_id
+              required: false
+              type: keyword
+              description: >
+                Application correlation identifier.
+
+            - name: delivery_mode
+              type: keyword
+              required: false
+              description: >
+                Non-persistent (1) or persistent (2).
+
+            - name: expiration
+              required: false
+              description: >
+                Message expiration specification.
+
+            - name: message_id
+              type: keyword
+              required: false
+              description: >
+                Application message identifier.
+
+            - name: priority
+              required: false
+              type: keyword
+              description: >
+                Message priority, 0 to 9.
+
+            - name: reply_to
+              required: false
+              type: text
+              description: >
+                Address to reply to.
+
+            - name: timestamp
+              required: false
+              type: date
+              description: >
+                Message timestamp.
+
+            - name: type
+              required: false
+              type: keyword
+              description: >
+                Message type name.
+
+            - name: user_id
+              required: false
+              type: keyword
+              description: >
+                Creating user id.
+
