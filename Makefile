@@ -24,6 +24,9 @@ copy-vendor:
 	mkdir -p vendor/golang.org/x/
 	cp -R ${GOPATH}/src/golang.org/x/text vendor/golang.org/x/
 	rm -rf vendor/golang.org/x/text/.git
+	mkdir -p vendor/github.com/streadway/
+	cp -R ${GOPATH}/src/github.com/streadway/amqp vendor/github.com/streadway/
+	rm -rf vendor/github.com/streadway/amqp/.git
 
 .PHONY: git-init
 git-init:

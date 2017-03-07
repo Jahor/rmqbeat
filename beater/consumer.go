@@ -1,18 +1,18 @@
 package beater
 
 import (
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/common"
-	"time"
 	"crypto/tls"
-	"github.com/elastic/beats/libbeat/outputs"
 	"fmt"
-	"github.com/streadway/amqp"
+	"github.com/elastic/beats/libbeat/common"
+	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/publisher"
 	"github.com/jahor/rmqbeat/config"
-	"strings"
-	"net"
+	"github.com/streadway/amqp"
 	"golang.org/x/text/encoding/unicode"
+	"net"
+	"strings"
+	"time"
 )
 
 type Consumer struct {
@@ -105,12 +105,12 @@ func (c *Consumer) connect() error {
 
 	logp.Info("[%s] dialing %q", config.Connection.Name, amqpURI)
 	c.conn, err = amqp.DialConfig(amqpURI, amqp.Config{
-		Heartbeat: connectionConfig.Heartbeat,
-		Vhost: connectionConfig.Vhost,
+		Heartbeat:       connectionConfig.Heartbeat,
+		Vhost:           connectionConfig.Vhost,
 		TLSClientConfig: ssl,
 		Properties: amqp.Table{
-			"product": "rmqbeat",
-			"version": "5.2.3",
+			"product":         "rmqbeat",
+			"version":         "5.2.3",
 			"connection_name": connectionConfig.Name,
 		},
 		Dial: func(network, addr string) (net.Conn, error) {
@@ -136,7 +136,6 @@ func (c *Consumer) connect() error {
 	go func() {
 		logp.Warn("closing: %s", <-c.conn.NotifyClose(make(chan *amqp.Error)))
 
-
 		// Wait for channel to stop
 		<-c.done
 
@@ -152,13 +151,13 @@ func (c *Consumer) connect() error {
 	if config.Exchange.Type != "" {
 		logp.Info("[%s] got Channel, declaring Exchange (%q)", config.Connection.Name, config.Exchange.Name)
 		if err = c.channel.ExchangeDeclare(
-			config.Exchange.Name, // name of the exchange
-			config.Exchange.Type, // type
-			config.Exchange.Durable, // durable
+			config.Exchange.Name,       // name of the exchange
+			config.Exchange.Type,       // type
+			config.Exchange.Durable,    // durable
 			config.Exchange.AutoDelete, // delete when complete
-			config.Exchange.Internal, // internal
-			config.Exchange.Passive, // noWait
-			config.Exchange.Arguments, // arguments
+			config.Exchange.Internal,   // internal
+			config.Exchange.Passive,    // noWait
+			config.Exchange.Arguments,  // arguments
 		); err != nil {
 			return fmt.Errorf("Exchange Declare: %s", err)
 		}
@@ -166,12 +165,12 @@ func (c *Consumer) connect() error {
 
 	logp.Info("[%s] declared Exchange, declaring Queue %q", config.Connection.Name, config.Queue.Name)
 	queue, err := c.channel.QueueDeclare(
-		config.Queue.Name, // name of the queue
-		config.Queue.Durable, // durable
+		config.Queue.Name,       // name of the queue
+		config.Queue.Durable,    // durable
 		config.Queue.AutoDelete, // delete when unused
-		config.Queue.Exclusive, // exclusive
-		config.Queue.Passive, // noWait
-		config.Queue.Arguments, // arguments
+		config.Queue.Exclusive,  // exclusive
+		config.Queue.Passive,    // noWait
+		config.Queue.Arguments,  // arguments
 	)
 
 	if err != nil {
@@ -182,10 +181,10 @@ func (c *Consumer) connect() error {
 		queue.Name, queue.Messages, queue.Consumers, config.Exchange.Name, config.RoutingKey)
 
 	if err = c.channel.QueueBind(
-		queue.Name, // name of the queue
-		config.RoutingKey, // bindingKey
+		queue.Name,           // name of the queue
+		config.RoutingKey,    // bindingKey
 		config.Exchange.Name, // sourceExchange
-		false, // noWait
+		false,                // noWait
 		config.RoutingArguments, // arguments
 	); err != nil {
 		return fmt.Errorf("Queue Bind: %s", err)
@@ -193,13 +192,13 @@ func (c *Consumer) connect() error {
 
 	logp.Info("[%s] Queue bound to Exchange, starting Consume (consumer tag %q)", config.Connection.Name, c.tag)
 	deliveries, err := c.channel.Consume(
-		queue.Name, // name
-		c.tag, // consumerTag,
+		queue.Name,  // name
+		c.tag,       // consumerTag,
 		!config.Ack, // noAck
-		false, // exclusive
-		false, // noLocal
-		false, // noWait
-		nil, // arguments
+		false,       // exclusive
+		false,       // noLocal
+		false,       // noWait
+		nil,         // arguments
 	)
 	if err != nil {
 		return fmt.Errorf("Queue Consume: %s", err)
@@ -247,9 +246,9 @@ func NewConsumer(cfg *common.Config, client publisher.Client) *Consumer {
 		channel: nil,
 		tag:     fmt.Sprintf("%s--%s--%s", consumerConfig.Exchange.Name, consumerConfig.RoutingKey, consumerConfig.Queue.Name),
 		done:    make(chan error),
-		client: client,
-		maker: maker,
-		config: consumerConfig,
+		client:  client,
+		maker:   maker,
+		config:  consumerConfig,
 	}
 
 	return c
@@ -366,29 +365,29 @@ func makeEvent(d amqp.Delivery, documentType string, queue string) *common.MapSt
 
 	event := &common.MapStr{
 		"@timestamp": timestamp,
-		"type":      documentType,
+		"type":       documentType,
 		"rabbitmq": RabbitMQEvent{
 			Properties: AMQPProperties{
-				ContentType:  nullify(d.ContentType),
-				ContentEncoding:  nullify(d.ContentEncoding),
-				DeliveryMode:  nullifyInt(int(d.DeliveryMode)),
-				Priority:  nullifyInt(int(d.Priority)),
-				CorrelationId:  nullify(d.CorrelationId),
-				ReplyTo:  nullify(d.ReplyTo),
-				MessageId:  nullify(d.MessageId),
-				Timestamp:  nullifyTime(d.Timestamp),
-				Type:  nullify(d.Type),
-				UserId:  nullify(d.UserId),
-				AppId:  nullify(d.AppId),
-				Expiration:  nullify(d.Expiration),
+				ContentType:     nullify(d.ContentType),
+				ContentEncoding: nullify(d.ContentEncoding),
+				DeliveryMode:    nullifyInt(int(d.DeliveryMode)),
+				Priority:        nullifyInt(int(d.Priority)),
+				CorrelationId:   nullify(d.CorrelationId),
+				ReplyTo:         nullify(d.ReplyTo),
+				MessageId:       nullify(d.MessageId),
+				Timestamp:       nullifyTime(d.Timestamp),
+				Type:            nullify(d.Type),
+				UserId:          nullify(d.UserId),
+				AppId:           nullify(d.AppId),
+				Expiration:      nullify(d.Expiration),
 			},
-			Headers: cleanMap(d.Headers),
-			Action:        "receive",
-			Queue:         nullify(queue),
-			ConsumerTag:   nullify(d.ConsumerTag),
-			Exchange:      d.Exchange,
-			Redelivered:   d.Redelivered,
-			RoutingKey:    d.RoutingKey,
+			Headers:     cleanMap(d.Headers),
+			Action:      "receive",
+			Queue:       nullify(queue),
+			ConsumerTag: nullify(d.ConsumerTag),
+			Exchange:    d.Exchange,
+			Redelivered: d.Redelivered,
+			RoutingKey:  d.RoutingKey,
 			Payload: Payload{
 				Size: len(d.Body),
 				Body: payloadBody,
@@ -479,32 +478,32 @@ func makeTraceEvent(d amqp.Delivery, documentType string) *common.MapStr {
 
 	event := &common.MapStr{
 		"@timestamp": timestamp,
-		"type":      documentType,
+		"type":       documentType,
 		"rabbitmq": RabbitMQEvent{
 			Properties: AMQPProperties{
-				ContentType:  optionalString(realProperties["content_type"]),
-				ContentEncoding:  optionalString(realProperties["content_encoding"]),
-				DeliveryMode:     optionalInt(realProperties["delivery_mode"]),
-				Priority:         optionalInt(realProperties["priority"]),
-				CorrelationId:    optionalString(realProperties["correlation_id"]),
-				ReplyTo:          optionalString(realProperties["reply_to"]),
-				MessageId:        optionalString(realProperties["message_id"]),
-				Timestamp:        realTimestamp,
-				Type:             optionalString(realProperties["type"]),
-				UserId:           optionalString(realProperties["user_id"]),
-				AppId:            optionalString(realProperties["app_id"]),
-				Expiration:       optionalString(realProperties["expiration"]),
+				ContentType:     optionalString(realProperties["content_type"]),
+				ContentEncoding: optionalString(realProperties["content_encoding"]),
+				DeliveryMode:    optionalInt(realProperties["delivery_mode"]),
+				Priority:        optionalInt(realProperties["priority"]),
+				CorrelationId:   optionalString(realProperties["correlation_id"]),
+				ReplyTo:         optionalString(realProperties["reply_to"]),
+				MessageId:       optionalString(realProperties["message_id"]),
+				Timestamp:       realTimestamp,
+				Type:            optionalString(realProperties["type"]),
+				UserId:          optionalString(realProperties["user_id"]),
+				AppId:           optionalString(realProperties["app_id"]),
+				Expiration:      optionalString(realProperties["expiration"]),
 			},
-			Headers: cleanMap(realHeaders),
-			Action:        action,
-			Queue:         nullify(queue),
-			Connection:    optionalString(d.Headers["connection"]),
-			Channel:       optionalInt(d.Headers["channel"]),
-			User:          optionalString(d.Headers["user"]),
-			RoutedQueues:  optionalStringArray(d.Headers["routed_queues"]),
-			Exchange:      d.Headers["exchange_name"].(string),
-			Redelivered:   optionalBool(d.Headers["redelivered"]),
-			RoutingKey:    (*optionalStringArray(d.Headers["routing_keys"]))[0],
+			Headers:      cleanMap(realHeaders),
+			Action:       action,
+			Queue:        nullify(queue),
+			Connection:   optionalString(d.Headers["connection"]),
+			Channel:      optionalInt(d.Headers["channel"]),
+			User:         optionalString(d.Headers["user"]),
+			RoutedQueues: optionalStringArray(d.Headers["routed_queues"]),
+			Exchange:     d.Headers["exchange_name"].(string),
+			Redelivered:  optionalBool(d.Headers["redelivered"]),
+			RoutingKey:   (*optionalStringArray(d.Headers["routing_keys"]))[0],
 			Payload: Payload{
 				Size: len(d.Body),
 				Body: payloadBody,

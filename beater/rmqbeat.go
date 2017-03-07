@@ -23,7 +23,7 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 	}
 
 	bt := &Rmqbeat{
-		done: make(chan struct{}),
+		done:   make(chan struct{}),
 		config: config,
 	}
 	return bt, nil
