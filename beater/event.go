@@ -2,26 +2,29 @@ package beater
 
 import "time"
 
+// AMQPProperties represents AMQP message properties
 type AMQPProperties struct {
 	ContentType     *string    `json:"content_type,omitempty"`     // MIME content type
 	ContentEncoding *string    `json:"content_encoding,omitempty"` // MIME content encoding
 	DeliveryMode    *int       `json:"delivery_mode,omitempty"`    // queue implementation use - non-persistent (1) or persistent (2)
 	Priority        *int       `json:"priority,omitempty"`         // queue implementation use - 0 to 9
-	CorrelationId   *string    `json:"correlation_id,omitempty"`   // application use - correlation identifier
+	CorrelationID   *string    `json:"correlation_id,omitempty"`   // application use - correlation identifier
 	ReplyTo         *string    `json:"reply_to,omitempty"`         // application use - address to to reply to (ex: RPC)
 	Expiration      *string    `json:"expiration,omitempty"`       // implementation use - message expiration spec
-	MessageId       *string    `json:"message_id,omitempty"`       // application use - message identifier
+	MessageID       *string    `json:"message_id,omitempty"`       // application use - message identifier
 	Timestamp       *time.Time `json:"timestamp,omitempty"`        // application use - message timestamp
 	Type            *string    `json:"type,omitempty"`             // application use - message type name
-	UserId          *string    `json:"user_id,omitempty"`          // application use - creating user - should be authenticated user
-	AppId           *string    `json:"app_id,omitempty"`           // application use - creating application id
+	UserID          *string    `json:"user_id,omitempty"`          // application use - creating user - should be authenticated user
+	AppID           *string    `json:"app_id,omitempty"`           // application use - creating application id
 }
 
+// Payload is a container for message payload
 type Payload struct {
 	Size int         `json:"size"`
 	Body interface{} `json:"body"`
 }
 
+// RabbitMQEvent contains information about a single AMQP message (or event relating to the message in tracer mode)
 type RabbitMQEvent struct {
 	Properties   AMQPProperties         `json:"properties"`
 	Headers      map[string]interface{} `json:"headers"`

@@ -9,10 +9,12 @@ import (
 	"time"
 )
 
+// Config contains RMQ Beat configuration structure
 type Config struct {
 	Consumers []*common.Config `config:"consumers"`
 }
 
+// QueueConfig represents queue configuration
 type QueueConfig struct {
 	// The name of the queue rmqbeat will consume events from. If
 	// left empty, a transient queue with an randomly chosen name
@@ -55,6 +57,7 @@ type QueueConfig struct {
 	Arguments map[string]interface{} `config:"arguments"`
 }
 
+// ExchangeConfig represents exchange configuration
 type ExchangeConfig struct {
 	// The name of the exchange rmqbeat will consume events from. If
 	// left empty, a transient queue with an randomly chosen name
@@ -98,6 +101,7 @@ type ExchangeConfig struct {
 	Arguments map[string]interface{} `config:"arguments"`
 }
 
+// ConnectionConfig holds RabbitMQ connection parameters
 type ConnectionConfig struct {
 	// RabbitMQ server address(es)
 	// host can either be a single host, or a list of hosts
@@ -165,6 +169,7 @@ type ConnectionConfig struct {
 	Name string `config:"name"`
 }
 
+// ConsumerConfig describes single consumer configuration
 type ConsumerConfig struct {
 	DocumentType string `config:"document_type"`
 
@@ -221,10 +226,12 @@ type ConsumerConfig struct {
 	common.EventMetadata `config:",inline"` // Fields and tags to add to events.
 }
 
+// DefaultConfig contains default configuration
 var DefaultConfig = Config{
 	Consumers: []*common.Config{},
 }
 
+// DefaultConnectionConfig provides default connection parameters
 var DefaultConnectionConfig = ConnectionConfig{
 	Host:                 []string{"localhost"},
 	Vhost:                "/",
@@ -239,6 +246,7 @@ var DefaultConnectionConfig = ConnectionConfig{
 	Name:                 "rmqbeat",
 }
 
+// DefaultConsumerConfig contains Default consumer configuration
 var DefaultConsumerConfig = ConsumerConfig{
 	DocumentType:  "rmq_message",
 	PrefetchCount: 256,
@@ -249,6 +257,7 @@ var DefaultConsumerConfig = ConsumerConfig{
 	Queue:         DefaultQueueConfig,
 }
 
+// DefaultTracerConsumerConfig contains consumer configuration in tracer mode
 var DefaultTracerConsumerConfig = ConsumerConfig{
 	DocumentType:  "rmq_message",
 	PrefetchCount: 256,
@@ -260,6 +269,7 @@ var DefaultTracerConsumerConfig = ConsumerConfig{
 	RoutingKey:    "#",
 }
 
+// DefaultTraceExchangeConfig contains exchange configuration in tracer mode
 var DefaultTraceExchangeConfig = ExchangeConfig{
 	Name:       "amq.rabbitmq.trace",
 	Durable:    true,
@@ -268,6 +278,7 @@ var DefaultTraceExchangeConfig = ExchangeConfig{
 	Passive:    false,
 }
 
+// DefaultExchangeConfig contains default exchange configuration
 var DefaultExchangeConfig = ExchangeConfig{
 	Durable:    true,
 	AutoDelete: false,
@@ -275,6 +286,7 @@ var DefaultExchangeConfig = ExchangeConfig{
 	Passive:    false,
 }
 
+// DefaultQueueConfig contains default Queue configuration
 var DefaultQueueConfig = QueueConfig{
 	Durable:    true,
 	AutoDelete: false,

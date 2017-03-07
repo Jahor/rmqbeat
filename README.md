@@ -1,4 +1,10 @@
 # Rmqbeat
+[![Build Status](https://travis-ci.org/Jahor/rmqbeat.svg?branch=master)](https://travis-ci.org/Jahor/rmqbeat)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Jahor/rmqbeat)](https://goreportcard.com/report/github.com/Jahor/rmqbeat)
+[![license](https://img.shields.io/github/license/Jahor/rmqbeat.svg)](https://github.com/Jahor/rmqbeat)
+
+![Elastic Beats 5.2.2](https://img.shields.io/badge/Elastic%20Beats-v5.2.2-blue.svg)
+![Golang 1.7.5](https://img.shields.io/badge/Golang-v1.7.5-blue.svg)
 
 Welcome to Rmqbeat.
 

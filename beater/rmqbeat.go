@@ -9,27 +9,28 @@ import (
 	"github.com/jahor/rmqbeat/config"
 )
 
-type Rmqbeat struct {
+type rmqbeat struct {
 	done      chan struct{}
 	config    config.Config
 	consumers []*Consumer
 }
 
-// Creates beater
+// New creates a rmqbeater from configuration
 func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 	config := config.DefaultConfig
 	if err := cfg.Unpack(&config); err != nil {
 		return nil, fmt.Errorf("Error reading config file: %v", err)
 	}
 
-	bt := &Rmqbeat{
+	bt := &rmqbeat{
 		done:   make(chan struct{}),
 		config: config,
 	}
 	return bt, nil
 }
 
-func (bt *Rmqbeat) Run(b *beat.Beat) error {
+// Run starts rmqbeater
+func (bt *rmqbeat) Run(b *beat.Beat) error {
 	logp.Info("rmqbeat is running! Hit CTRL-C to stop it.")
 
 	bt.consumers = make([]*Consumer, len(bt.config.Consumers))
@@ -58,6 +59,7 @@ func (bt *Rmqbeat) Run(b *beat.Beat) error {
 	return nil
 }
 
-func (bt *Rmqbeat) Stop() {
+// Stop cancels all consumers
+func (bt *rmqbeat) Stop() {
 	close(bt.done)
 }

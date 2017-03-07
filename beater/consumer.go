@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// Consumer is a basic AMQP message receiver, that publishes received message to configured outputs
 type Consumer struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
@@ -26,7 +27,7 @@ type Consumer struct {
 	maker   func(d amqp.Delivery) *common.MapStr
 }
 
-func buildUrl(connectionConfig *config.ConnectionConfig, hostIdx int) (string, *tls.Config, error) {
+func buildURL(connectionConfig *config.ConnectionConfig, hostIdx int) (string, *tls.Config, error) {
 	host := connectionConfig.Host[hostIdx]
 	var schema string
 	var ssl *tls.Config
@@ -55,6 +56,7 @@ func buildUrl(connectionConfig *config.ConnectionConfig, hostIdx int) (string, *
 	return fmt.Sprintf("%s://%s%s:%d", schema, auth, host, connectionConfig.Port), ssl, nil
 }
 
+// Connect starts connection to AMQP
 func (c *Consumer) Connect() {
 	err := c.connect()
 	if err != nil {
@@ -79,12 +81,12 @@ func (c *Consumer) reconnect() {
 				return
 			case <-ticker.C:
 				logp.Info("Reconnecting...")
-				if err := c.connect(); err == nil {
+				err := c.connect()
+				if err == nil {
 					ticker.Stop()
 					return
-				} else {
-					logp.Info("Error connecting: ", err)
 				}
+				logp.Info("Error connecting: ", err)
 			}
 
 			ticker.Stop()
@@ -97,7 +99,7 @@ func (c *Consumer) connect() error {
 	connectionConfig := &config.Connection
 	var err error
 
-	amqpURI, ssl, err := buildUrl(connectionConfig, c.hostIdx)
+	amqpURI, ssl, err := buildURL(connectionConfig, c.hostIdx)
 	c.hostIdx = (c.hostIdx + 1) % len(connectionConfig.Host)
 	if err != nil {
 		return fmt.Errorf("TLS Config Load: %s", err)
@@ -209,6 +211,7 @@ func (c *Consumer) connect() error {
 	return nil
 }
 
+// NewConsumer creates a consumer from configuration
 func NewConsumer(cfg *common.Config, client publisher.Client) *Consumer {
 
 	var consumerConfig config.ConsumerConfig
@@ -254,6 +257,7 @@ func NewConsumer(cfg *common.Config, client publisher.Client) *Consumer {
 	return c
 }
 
+// Shutdown cancels consumer and closes connection
 func (c *Consumer) Shutdown() error {
 
 	// If we are not waiting to reconnect
@@ -273,13 +277,12 @@ func (c *Consumer) Shutdown() error {
 
 		// wait for handle() to exit
 		return <-c.done
-	} else {
-		logp.Info("Stopping in reconnect")
-		// Cancel wait to reconnect
-		c.done <- nil
-		return nil
 	}
 
+	logp.Info("Stopping in reconnect")
+	// Cancel wait to reconnect
+	c.done <- nil
+	return nil
 }
 
 func handle(consumer *Consumer, deliveries <-chan amqp.Delivery, done chan error) {
@@ -333,25 +336,22 @@ func decode(body []byte, contentEncoding string) (string, error) {
 func nullify(s string) *string {
 	if len(s) == 0 {
 		return nil
-	} else {
-		return &s
 	}
+	return &s
 }
 
 func nullifyInt(s int) *int {
 	if s == 0 {
 		return nil
-	} else {
-		return &s
 	}
+	return &s
 }
 
 func nullifyTime(s time.Time) *time.Time {
 	if s.IsZero() {
 		return nil
-	} else {
-		return &s
 	}
+	return &s
 }
 
 func makeEvent(d amqp.Delivery, documentType string, queue string) *common.MapStr {
@@ -372,13 +372,13 @@ func makeEvent(d amqp.Delivery, documentType string, queue string) *common.MapSt
 				ContentEncoding: nullify(d.ContentEncoding),
 				DeliveryMode:    nullifyInt(int(d.DeliveryMode)),
 				Priority:        nullifyInt(int(d.Priority)),
-				CorrelationId:   nullify(d.CorrelationId),
+				CorrelationID:   nullify(d.CorrelationId),
 				ReplyTo:         nullify(d.ReplyTo),
-				MessageId:       nullify(d.MessageId),
+				MessageID:       nullify(d.MessageId),
 				Timestamp:       nullifyTime(d.Timestamp),
 				Type:            nullify(d.Type),
-				UserId:          nullify(d.UserId),
-				AppId:           nullify(d.AppId),
+				UserID:          nullify(d.UserId),
+				AppID:           nullify(d.AppId),
 				Expiration:      nullify(d.Expiration),
 			},
 			Headers:     cleanMap(d.Headers),
@@ -461,7 +461,7 @@ func makeTraceEvent(d amqp.Delivery, documentType string) *common.MapStr {
 
 	payloadBody, _ := decode(d.Body, d.ContentEncoding)
 
-	var realTimestamp *time.Time = nil
+	var realTimestamp *time.Time
 	mayBeRealTimestamp, hasRealTimestamp := realProperties["timestamp"]
 	var timestamp common.Time
 	if hasRealTimestamp {
@@ -485,13 +485,13 @@ func makeTraceEvent(d amqp.Delivery, documentType string) *common.MapStr {
 				ContentEncoding: optionalString(realProperties["content_encoding"]),
 				DeliveryMode:    optionalInt(realProperties["delivery_mode"]),
 				Priority:        optionalInt(realProperties["priority"]),
-				CorrelationId:   optionalString(realProperties["correlation_id"]),
+				CorrelationID:   optionalString(realProperties["correlation_id"]),
 				ReplyTo:         optionalString(realProperties["reply_to"]),
-				MessageId:       optionalString(realProperties["message_id"]),
+				MessageID:       optionalString(realProperties["message_id"]),
 				Timestamp:       realTimestamp,
 				Type:            optionalString(realProperties["type"]),
-				UserId:          optionalString(realProperties["user_id"]),
-				AppId:           optionalString(realProperties["app_id"]),
+				UserID:          optionalString(realProperties["user_id"]),
+				AppID:           optionalString(realProperties["app_id"]),
 				Expiration:      optionalString(realProperties["expiration"]),
 			},
 			Headers:      cleanMap(realHeaders),
