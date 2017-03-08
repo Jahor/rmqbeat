@@ -3,15 +3,20 @@
 ############################# Rmqbeat ######################################
 
 rmqbeat:
-  # Defines how often an event is sent to the output
   consumers:
-    - queue:
-        name: queue_name
-
-      exchange:
-        name: exchange.name
-
-      routing_key: "#"
+      # The name of the queue rmqbeat will consume events from. If
+      # left empty, a transient queue with an randomly chosen name
+      # will be created.
+    - queue.name: queue_name
+      # The name of the exchange rmqbeat will bind queue to. If
+      # left empty, rmqbeat will not bind to any exchange
+      exchange.name: exchange.name
+	  # The routing key to use when binding a queue to the exchange.
+	  # This is only relevant for direct or topic exchanges.
+	  #
+	  # * Routing keys are ignored on fanout exchanges.
+	  # * Wildcards are not valid on direct exchanges.
+      routing_key:
 
 
 

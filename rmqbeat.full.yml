@@ -3,72 +3,246 @@
 ############################# Rmqbeat ######################################
 
 rmqbeat:
-  # Defines how often an event is sent to the output
+
   consumers:
+
     - connection:
+        # Name of connection that RabbitMQ displays in Management console. (client_property `connection_name`)
+    	#
+    	# Default: rmqbeat
+        # name: rmqbeat
+
+        # RabbitMQ server address(es)
+        # host can either be a single host, or a list of hosts
+        # i.e.
+        #   host: "localhost"
+        # or
+        #   host: ["host01", "host02]
+        #
+        # if multiple hosts are provided on the initial connection and any subsequent
+        # recovery attempts of the hosts is chosen at random and connected to.
+        # Note that only one host connection is active at a time.
+        #
+        # Default: [localhost]
         host: localhost
-        vhost: /
-        port: 5672
-        user: guest
-        password: guest
-        automatic_recovery: true
-        connect_retry_interval: 5s
-        connection_timeout: 2s
-        heartbeat: 10s
-        ssl:
-          enabled: false
+
+	    # RabbitMQ port to connect on
+	    #
+	    # Default: 5672
+        #port: 5672
+
+        # The vhost (virtual host) to use. If you don't know what this
+        # is, leave the default. With the exception of the default
+        # vhost ("/"), names of vhosts should not begin with a forward
+        # slash.
+        #
+        # Default: /
+        #vhost: /
+
+	    # RabbitMQ username
+	    #
+	    # Default: guest
+        #user: guest
+
+        # RabbitMQ password
+        #
+        # Default: guest
+        #password: guest
+
+        # Set this to automatically recover from a broken connection. You almost certainly don't want to override this!!!
+        #
+        # Default: true
+        #automatic_recovery: true
+
+	    # Time in seconds to wait before retrying a connection
+	    #
+	    # Default: 5s
+        #connect_retry_interval: 5s
+
+        # The default connection timeout in milliseconds. If not specified the timeout is infinite.
+        #
+        # Default: 20s
+        #connection_timeout: 2s
+
+	    # Heartbeat delay in seconds. If unspecified no heartbeats will be sent
+	    #
+	    # Default: 25s
+        # heartbeat: 25s
+        #
+        # ssl:
+          # Use SSL. Default is false.
+          #enabled: true
+
+          # Configure SSL verification mode. If `none` is configured, all server hosts
+          # and certificates will be accepted. In this mode, SSL based connections are
+          # susceptible to man-in-the-middle attacks. Use only for testing. Default is
+          # `full`.
+          #verification_mode: full
+
+          # List of supported/valid TLS versions. By default all TLS versions 1.0 up to
+          # 1.2 are enabled.
+          #supported_protocols: [TLSv1.0, TLSv1.1, TLSv1.2]
+
+          # SSL configuration. By default is off.
+          # List of root certificates for HTTPS server verifications
+          #certificate_authorities: ["/etc/pki/root/ca.pem"]
+
+          # Certificate for SSL client authentication
+          #certificate: "/etc/pki/client/cert.pem"
+
+          # Client Certificate Key
+          #key: "/etc/pki/client/cert.key"
+
+          # Optional passphrase for decrypting the Certificate Key.
+          #key_passphrase: ''
+
+          # Configure cipher suites to be used for SSL connections
+          #cipher_suites: []
+
+          # Configure curve types for ECDHE based cipher suites
+          #curve_types: []
 
       queue:
+        # The name of the queue rmqbeat will consume events from. If
+        # left empty, a transient queue with an randomly chosen name
+        # will be created.
         name: log
-        durable: true
-        auto_delete: false
-        exclusive: false
-        arguments:
+
+        # Is this queue durable? (aka; Should it survive a broker restart?)
+        #
+        # Default: true
+        #durable: true
+
+        # Should the queue be deleted on the broker when the last consumer
+        # disconnects? Set this option to `false` if you want the queue to remain
+        # on the broker, queueing up messages until a consumer comes along to
+        # consume them.
+        #
+        # Default: false
+        #auto_delete: false
+
+        # Is the queue exclusive? Exclusive queues can only be used by the connection
+        # that declared them and will be deleted when it is closed (e.g. due to a Logstash
+        # restart).
+        #
+        # Default: false
+        #exclusive: false
+
+        # If true the queue will be passively declared, meaning it must
+        # already exist on the server. To have Logstash create the queue
+        # if necessary leave this option as false. If actively declaring
+        # a queue that already exists, the queue options for this plugin
+        # (durable etc) must match those of the existing queue.
+        #
+        # Default: false
+        #passive: false
+
+        # Extra queue arguments.
+        # To make a RabbitMQ queue mirrored, use: `"x-ha-policy": "all"`
+        #
+        # Default: {}
+        #arguments: {}
 
       exchange:
+        # The name of the exchange rmqbeat will bind queue to. If
+        # left empty, rmqbeat will not bind to any exchange
         name: amq.rabbitmq.log
-        type:
-        durable: true
-        auto_delete: false
-        exclusive: false
-        arguments:
 
+        # The type of the exchange to bind to. Specifying this will cause this plugin
+        # to declare the exchange if it does not exist.
+        type:
+
+        # Is this exchange durable? (aka; Should it survive a broker restart?)
+        #
+        # Default: true
+        #durable: true
+
+        # Should the exchange be deleted on the broker when the last queue
+    	# disconnects? Set this option to `false` if you want the queue to remain
+    	# on the broker, queueing up messages until a consumer comes along to
+    	# consume them.
+    	#
+    	# Default: false
+        #auto_delete: false
+
+	    # Should the exchange be created internal.
+	    #
+	    # Default: false
+	    #internal: false
+
+        # If true the queue will be passively declared, meaning it must
+        # already exist on the server. To have Logstash create the queue
+        # if necessary leave this option as false. If actively declaring
+        # a queue that already exists, the queue options for this plugin
+        # (durable etc) must match those of the existing queue.
+        #
+        # Default: false
+        #passive: false
+
+        # Extra exchange arguments.
+        #
+        # Default: {}
+        #arguments: {}
+
+	  # The routing key to use when binding a queue to the exchange.
+	  # This is only relevant for direct or topic exchanges.
+	  #
+	  # * Routing keys are ignored on fanout exchanges.
+	  # * Wildcards are not valid on direct exchanges.
       routing_key: "#"
 
-      prefetch_count: 10
+      # Extra binding arguments.
+      #
+      # Default: {}
+      #routing_arguments: {}
+
+      # Prefetch count. If acknowledgements are enabled with the `ack`
+      # option, specifies the number of outstanding unacknowledged
+      # messages allowed.
+      #
+      # Default: 256
+      #prefetch_count: 256
+
+      # Enable message acknowledgements. With acknowledgements
+      # messages fetched by rmqbeat but not yet published
+      # will be requeued by the server if rmqbeat
+      # shuts down or disconnects. Acknowledgements will however hurt the message
+      # throughput.
+      #
+      # Default: true
       ack: true
-      tracer: false
-      document_type: 'rmqlog'
 
-      fields_under_root: false
-      fields:
+      # Mode for reading messages produced by RabbitMQ tracer published to
+      # amq.rabbitmq.trace exchange.
+      # Event produced will look like if it was received directly
+      # And adding some more information like user, connection, channel
+      # When true automatically populates exchange and routing key
+      #
+      # Default: false
+      #tracer: false
 
-      tags: []
+      # Document type to publish.
+      #
+      # Default: rmqbeat
+      #document_type: rmqbeat
 
-    - connection:
-        host: localhost
-        vhost: /
-        port: 5672
-        user: guest
-        password: guest
-        automatic_recovery: true
-        connect_retry_interval: 5s
-        connection_timeout: 2s
-        heartbeat: 10s
-        ssl:
-          enabled: false
+      # Optional fields that you can specify to add additional information to the
+      # output. Fields can be scalar values, arrays, dictionaries, or any nested
+      # combination of these.
+      #fields:
+      #  env: staging
 
-      queue:
-        name: trace
-        durable: true
-        auto_delete: false
-        exclusive: false
-        arguments:
+      # If this option is set to true, the custom fields are stored as top-level
+      # fields in the output document instead of being grouped under a fields
+      # sub-dictionary. Default is false.
+      #fields_under_root: false
 
-      prefetch_count: 10
-      ack: true
-      tracer: true
-      document_type: 'rmqmessage'
+      # The tags of the shipper are included in their own field with each
+      # transaction published. Tags make it easy to group servers by different
+      # logical properties.
+      #tags: ["service-X", "web-tier"]
+
+
 #================================ General ======================================
 
 # The name of the shipper that publishes the network data. It can be used to group

@@ -1,5 +1,12 @@
 = Rmqbeat Docs
 
-Welcome to the Rmqbeat documentation.
+Rmqbeat allows to read messages over AMQP (from RabbitMQ or other server) and post them to Elasticsearch, Logstash, etc.
 
+It preserves both payload and properties including headers.
 
+It also supports `tracer` mode, which is designed to connect to `amq.rabbitmq.trace` node and receive trace messages activity.
+In this mode it publishes message as it was sent (with original properties) and adds some additional information such as username, action performed (publish|deliver), etc.
+
+It can also serve as a RabbitMQ log shipper when you subscribe to `amq.rabbitmq.log` exchange.
+
+include::./fields.asciidoc[]
