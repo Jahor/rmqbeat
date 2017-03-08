@@ -417,7 +417,26 @@ func optionalInt(something interface{}) *int {
 	if something == nil {
 		return nil
 	}
-	num := int(something.(int32))
+	var num int
+	switch v := something.(type) {
+	default:
+		logp.Err("unexpected type %T when converting to bool", v)
+		return nil
+	case int8:
+		num = int(something.(int8))
+	case uint8:
+		num = int(something.(uint8))
+	case int16:
+		num = int(something.(int16))
+	case uint16:
+		num = int(something.(uint16))
+	case int32:
+		num = int(something.(int32))
+	case uint32:
+		num = int(something.(uint32))
+	case int:
+		num = something.(int)
+	}
 	return &num
 }
 
@@ -434,11 +453,20 @@ func optionalStringArray(something interface{}) *[]string {
 	return &result
 }
 
-func optionalBool(something interface{}) bool {
+func extractBool(something interface{}) bool {
 	if something == nil {
 		return false
 	}
-	return something.(bool)
+	switch v := something.(type) {
+	default:
+		num := optionalInt(something)
+		if num == nil {
+			logp.Err("unexpected type %T when converting to bool", v)
+		}
+		return *num != 0
+	case bool:
+		return something.(bool)
+	}
 }
 
 func optionalTable(something interface{}) amqp.Table {
@@ -510,7 +538,7 @@ func makeTraceEvent(d amqp.Delivery, documentType string) *common.MapStr {
 			User:         optionalString(d.Headers["user"]),
 			RoutedQueues: optionalStringArray(d.Headers["routed_queues"]),
 			Exchange:     d.Headers["exchange_name"].(string),
-			Redelivered:  optionalBool(d.Headers["redelivered"]),
+			Redelivered:  extractBool(d.Headers["redelivered"]),
 			RoutingKey:   (*optionalStringArray(d.Headers["routing_keys"]))[0],
 			Payload: Payload{
 				Size: len(d.Body),
