@@ -181,20 +181,24 @@ func (c *Consumer) connect() error {
 		return fmt.Errorf("Queue Declare: %s", err)
 	}
 
-	logp.Info("[%s] declared Queue (%q %d messages, %d consumers), binding to Exchange %q (key %q)", config.Connection.Name,
-		queue.Name, queue.Messages, queue.Consumers, config.Exchange.Name, config.RoutingKey)
+	if config.Exchange.Name != "" {
+		logp.Info("[%s] declared Queue (%q %d messages, %d consumers), binding to Exchange %q (key %q)", config.Connection.Name,
+			queue.Name, queue.Messages, queue.Consumers, config.Exchange.Name, config.RoutingKey)
 
-	if err = c.channel.QueueBind(
-		queue.Name,           // name of the queue
-		config.RoutingKey,    // bindingKey
-		config.Exchange.Name, // sourceExchange
-		false,                // noWait
-		config.RoutingArguments, // arguments
-	); err != nil {
-		return fmt.Errorf("Queue Bind: %s", err)
+		if err = c.channel.QueueBind(
+			queue.Name,           // name of the queue
+			config.RoutingKey,    // bindingKey
+			config.Exchange.Name, // sourceExchange
+			false,                // noWait
+			config.RoutingArguments, // arguments
+		); err != nil {
+			return fmt.Errorf("Queue Bind: %s", err)
+		}
+
+		logp.Info("[%s] Queue bound to Exchange, starting Consume (consumer tag %q)", config.Connection.Name, c.tag)
+	} else {
+		logp.Info("[%s] Starting Consume (consumer tag %q)", config.Connection.Name, c.tag)
 	}
-
-	logp.Info("[%s] Queue bound to Exchange, starting Consume (consumer tag %q)", config.Connection.Name, c.tag)
 	deliveries, err := c.channel.Consume(
 		queue.Name,  // name
 		c.tag,       // consumerTag,
