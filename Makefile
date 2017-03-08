@@ -3,7 +3,8 @@ BEAT_DIR=github.com/jahor/rmqbeat
 SYSTEM_TESTS=false
 TEST_ENVIRONMENT=false
 ES_BEATS?=./vendor/github.com/elastic/beats
-GOPACKAGES=$(shell glide novendor)
+GOPACKAGES=$(shell go list ${BEAT_DIR}/... | grep -v /vendor/)
+#GOPACKAGES=$(shell glide novendor)
 PREFIX?=.
 NOTICE_FILE=NOTICE
 
