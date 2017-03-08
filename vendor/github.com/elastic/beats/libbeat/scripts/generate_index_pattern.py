@@ -5,19 +5,19 @@ This script generates the index-pattern for Kibana from
 the fields.yml file.
 """
 
+import yaml
 import argparse
-import errno
+import string
+import re
 import json
 import os
-import re
-import string
+import errno
 import sys
-import yaml
 
 unique_fields = []
 
-
 def fields_to_json(section, path, output):
+
     for field in section["fields"]:
         if path == "":
             newpath = field["name"]
@@ -31,6 +31,7 @@ def fields_to_json(section, path, output):
 
 
 def field_to_json(desc, path, output):
+
     global unique_fields
 
     if path in unique_fields:
@@ -70,13 +71,14 @@ def field_to_json(desc, path, output):
         output["fieldFormatMap"][path] = {
             "id": desc["format"],
         }
-        if "format_parameters" in desc:
-            output["fieldFormatMap"][path].update({
-                "params": desc["format_parameters"],
-            })
+    if "format_parameters" in desc:
+        output["fieldFormatMap"][path].update({
+            "params": desc["format_parameters"],
+        })
 
 
 def fields_to_index_pattern(args, input):
+
     docs = yaml.load(input)
 
     if docs is None:
@@ -100,6 +102,7 @@ def fields_to_index_pattern(args, input):
 
 
 def get_index_pattern_name(index):
+
     allow = string.ascii_letters + string.digits + "_"
     return re.sub('[^%s]' % allow, '', index)
 
@@ -134,10 +137,9 @@ if __name__ == "__main__":
     # dump output to a json file
     fileName = get_index_pattern_name(args.index)
     target_dir = os.path.join(args.beat, "_meta", "kibana", "index-pattern")
-    target_file = os.path.join(target_dir, fileName + ".json")
+    target_file =os.path.join(target_dir, fileName + ".json")
 
-    try:
-        os.makedirs(target_dir)
+    try: os.makedirs(target_dir)
     except OSError as exception:
         if exception.errno != errno.EEXIST: raise
 

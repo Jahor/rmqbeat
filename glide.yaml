@@ -1,0 +1,29 @@
+package: github.com/jahor/rmqbeat
+homepage: https://github.com/jahor/rmqbeat
+license: Apache-2.0
+owners:
+- name: Egor Leonenko
+  homepage: https://github.com/jahor
+
+ignore:
+- github.com/elastic/beats  # Copy locally
+import:
+#- package: github.com/elastic/beats
+#  version: v5.2.2
+#  subpackages:
+#  - libbeat/beat
+#  - libbeat/cfgfile
+#  - libbeat/logp
+#  - libbeat/publisher
+- package: github.com/streadway/amqp
+  version: ce1c69d94c3efdb1f287015f851b17db8fa205b1
+- package: golang.org/x/text
+  version: d69c40b4be55797923cec7457fac7a244d91a9b6
+  subpackages:
+  - /encoding
+
+testImport:
+  - package: github.com/stretchr/testify
+    version: v1.1.3
+    subpackages:
+    - /assert
