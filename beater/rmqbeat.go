@@ -12,6 +12,8 @@ import (
 type rmqbeat struct {
 	done      chan struct{}
 	config    config.Config
+	name      string
+	version   string
 	consumers []*Consumer
 }
 
@@ -23,8 +25,10 @@ func New(b *beat.Beat, cfg *common.Config) (beat.Beater, error) {
 	}
 
 	bt := &rmqbeat{
-		done:   make(chan struct{}),
-		config: config,
+		done:    make(chan struct{}),
+		config:  config,
+		name:    b.Name,
+		version: b.Version,
 	}
 	return bt, nil
 }
@@ -35,7 +39,7 @@ func (bt *rmqbeat) Run(b *beat.Beat) error {
 
 	bt.consumers = make([]*Consumer, len(bt.config.Consumers))
 	for i, consumerConfig := range bt.config.Consumers {
-		cons := NewConsumer(consumerConfig, b.Publisher.Connect())
+		cons := NewConsumer(consumerConfig, b.Publisher.Connect(), bt.name, bt.version)
 		bt.consumers[i] = cons
 	}
 

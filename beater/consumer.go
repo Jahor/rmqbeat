@@ -19,6 +19,8 @@ import (
 type Consumer struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
+	name    string
+	version string
 	tag     string
 	done    chan error
 	config  config.ConsumerConfig
@@ -111,8 +113,8 @@ func (c *Consumer) connect() error {
 		Vhost:           connectionConfig.Vhost,
 		TLSClientConfig: ssl,
 		Properties: amqp.Table{
-			"product":         "rmqbeat",
-			"version":         "5.2.3",
+			"product":         c.name,
+			"version":         c.version,
 			"connection_name": connectionConfig.Name,
 		},
 		Dial: func(network, addr string) (net.Conn, error) {
@@ -212,7 +214,7 @@ func (c *Consumer) connect() error {
 }
 
 // NewConsumer creates a consumer from configuration
-func NewConsumer(cfg *common.Config, client publisher.Client) *Consumer {
+func NewConsumer(cfg *common.Config, client publisher.Client, name string, version string) *Consumer {
 
 	var consumerConfig config.ConsumerConfig
 
@@ -252,6 +254,8 @@ func NewConsumer(cfg *common.Config, client publisher.Client) *Consumer {
 		client:  client,
 		maker:   maker,
 		config:  consumerConfig,
+		name:    name,
+		version: version,
 	}
 
 	return c
