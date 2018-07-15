@@ -5,40 +5,60 @@ services:
 
 language: go
 
-go:
-  - 1.9
-
-os:
-  - linux
-  - osx
+# Make sure project can also be built on travis for clones of the repo
+go_import_path: github.com/jahor/rmqbeat
 
 env:
-  matrix:
-    - TARGETS="check"
-    - TARGETS="ci"
-    - TARGETS="crosscompile"
-
   global:
     # Cross-compile for amd64 only to speed up testing.
     - GOX_FLAGS="-arch amd64"
+    - DOCKER_COMPOSE_VERSION=1.11.1
+    - GO_VERSION="$(cat .go-version)"
+    # Newer versions of minikube fail on travis, see: https://github.com/kubernetes/minikube/issues/2704
+    - TRAVIS_MINIKUBE_VERSION=v0.25.2
+
+jobs:
+  include:
+    # General checks
+    - os: linux
+      env: TARGETS="check"
+      go: $GO_VERSION
+      stage: check
+
+    # Rmqbeat
+    - os: linux
+      env: TARGETS="-C rmqbeat testsuite"
+      go: $GO_VERSION
+      stage: test
+    - os: osx
+      env: TARGETS="TEST_ENVIRONMENT=0 -C rmqbeat testsuite"
+      go: $GO_VERSION
+      stage: test
 
 addons:
   apt:
+    update: true
     packages:
       - python-virtualenv
+      - libpcap-dev
 
 before_install:
-  # Redo the travis setup but with the elastic/libbeat path. This is needed so the package path is correct
-  - mkdir -p $HOME/gopath/src/github.com/jahor/rmqbeat/
-  - rsync -az ${TRAVIS_BUILD_DIR}/ $HOME/gopath/src/github.com/jahor/rmqbeat/
-  - export TRAVIS_BUILD_DIR=$HOME/gopath/src/github.com/jahor/rmqbeat/
-  - cd $HOME/gopath/src/github.com/jahor/rmqbeat/
+  - python --version
+  - umask 022
+  - chmod -R go-w $GOPATH/src/github.com/jahor/rmqbeat
+  # Docker-compose installation
+  - sudo rm /usr/local/bin/docker-compose || true
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 
-install:
-  - true
+# Skips installations step
+install: true
 
 script:
   - make $TARGETS
 
+
 after_success:
+  # Copy full.cov to coverage.txt because codecov.io requires this file
   - test -f build/coverage/full.cov && bash <(curl -s https://codecov.io/bash) -f build/coverage/full.cov
