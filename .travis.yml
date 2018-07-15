@@ -47,6 +47,7 @@ before_install:
   - umask 022
   - chmod -R go-w $GOPATH/src/github.com/jahor/rmqbeat
   - go get -u -v github.com/kardianos/govendor
+  - cd $GOPATH/src/github.com/jahor/rmqbeat && glide up
   # Docker-compose installation
   - sudo rm /usr/local/bin/docker-compose || true
   - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
