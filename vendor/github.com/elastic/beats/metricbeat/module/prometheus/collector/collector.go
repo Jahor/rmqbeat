@@ -1,12 +1,11 @@
 package collector
 
 import (
-	"bufio"
 	"fmt"
-	"net/http"
 
 	"github.com/elastic/beats/libbeat/common"
-	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/common/cfgwarn"
+	"github.com/elastic/beats/metricbeat/helper"
 	"github.com/elastic/beats/metricbeat/mb"
 	"github.com/elastic/beats/metricbeat/mb/parse"
 )
@@ -17,8 +16,6 @@ const (
 )
 
 var (
-	debugf = logp.MakeDebug("prometheus-collector")
-
 	hostParser = parse.URLHostParserBuilder{
 		DefaultScheme: defaultScheme,
 		DefaultPath:   defaultPath,
@@ -27,19 +24,20 @@ var (
 )
 
 func init() {
-	if err := mb.Registry.AddMetricSet("prometheus", "collector", New, hostParser); err != nil {
-		panic(err)
-	}
+	mb.Registry.MustAddMetricSet("prometheus", "collector", New,
+		mb.WithHostParser(hostParser),
+		mb.DefaultMetricSet(),
+	)
 }
 
 type MetricSet struct {
 	mb.BaseMetricSet
-	client    *http.Client
-	namespace string
+	prometheus *helper.Prometheus
+	namespace  string
 }
 
 func New(base mb.BaseMetricSet) (mb.MetricSet, error) {
-	logp.Warn("EXPERIMENTAL: The prometheus collector metricset is experimental")
+	cfgwarn.Beta("The prometheus collector metricset is beta")
 
 	config := struct {
 		Namespace string `config:"namespace" validate:"required"`
@@ -49,62 +47,48 @@ func New(base mb.BaseMetricSet) (mb.MetricSet, error) {
 		return nil, err
 	}
 
+	prometheus, err := helper.NewPrometheusClient(base)
+	if err != nil {
+		return nil, err
+	}
+
 	return &MetricSet{
 		BaseMetricSet: base,
-		client:        &http.Client{Timeout: base.Module().Config().Timeout},
+		prometheus:    prometheus,
 		namespace:     config.Namespace,
 	}, nil
 }
 
 func (m *MetricSet) Fetch() ([]common.MapStr, error) {
+	families, err := m.prometheus.GetFamilies()
 
-	req, err := http.NewRequest("GET", m.HostData().SanitizedURI, nil)
-	if m.HostData().User != "" || m.HostData().Password != "" {
-		req.SetBasicAuth(m.HostData().User, m.HostData().Password)
-	}
-	resp, err := m.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error making http request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("Unable to decode response from prometheus endpoint")
 	}
 
 	eventList := map[string]common.MapStr{}
-	scanner := bufio.NewScanner(resp.Body)
 
-	// Iterate through all events to gather data
-	for scanner.Scan() {
-		line := scanner.Text()
-		// Skip comment lines
-		if line[0] == '#' {
-			continue
-		}
+	for _, family := range families {
+		promEvents := GetPromEventsFromMetricFamily(family)
 
-		promEvent := NewPromEvent(line)
-		if promEvent.value == nil {
-			continue
-		}
+		for _, promEvent := range promEvents {
+			if _, ok := eventList[promEvent.labelHash]; !ok {
+				eventList[promEvent.labelHash] = common.MapStr{}
 
-		// If MapString for this label group does not exist yet, it is created
-		if _, ok := eventList[promEvent.labelHash]; !ok {
-			eventList[promEvent.labelHash] = common.MapStr{}
-
-			// Add labels
-			if len(promEvent.labels) > 0 {
-				eventList[promEvent.labelHash]["label"] = promEvent.labels
+				// Add labels
+				if len(promEvent.labels) > 0 {
+					eventList[promEvent.labelHash]["label"] = promEvent.labels
+				}
 			}
 
+			eventList[promEvent.labelHash][promEvent.key] = promEvent.value
 		}
-		eventList[promEvent.labelHash][promEvent.key] = promEvent.value
 	}
 
 	// Converts hash list to slice
 	events := []common.MapStr{}
 	for _, e := range eventList {
-		e["_namespace"] = m.namespace
+		e[mb.NamespaceKey] = m.namespace
 		events = append(events, e)
 	}
 

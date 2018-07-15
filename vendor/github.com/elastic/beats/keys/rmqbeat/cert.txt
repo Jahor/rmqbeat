@@ -1,0 +1,100 @@
+tbs_certificate: 
+    version: v3
+    serial_number: 5a:d6:c8:c5:ae:69:c3:8f:bf:bd:5c:3c:94:05:ed:b9:97:c2:05:3e
+    signature: 
+        algorithm: sha512_rsa
+        parameters: None
+    issuer: 
+        country_name: US
+        organization_name: Evo Inc.
+        common_name: Evo Inc. Elastic
+    validity: 
+        not_before: 2018-04-18 04:25:41+00:00
+        not_after: 2018-07-18 04:25:41+00:00
+    subject: 
+        country_name: US
+        organization_name: Evo Inc.
+        common_name: rmqbeat
+    subject_public_key_info: 
+        algorithm: 
+            algorithm: rsa
+            parameters: None
+        public_key: 
+            modulus: 
+                c3:2e:94:0a:16:af:c3:23:7e:9a:25:93:d0:27:b7:1a
+                a9:2d:79:32:ca:f6:16:6a:ea:d9:81:c1:1e:a7:3b:81
+                f5:0f:5b:ed:b7:3a:08:0f:4d:01:ee:76:df:42:80:24
+                0b:8e:66:5e:c4:7d:46:16:18:3f:45:60:85:1f:04:1c
+                22:2c:95:b9:4b:10:5e:34:56:f7:fa:f1:49:35:d5:20
+                68:ec:c4:c3:a0:43:3e:d8:a4:d6:99:29:24:27:de:80
+                cc:1a:98:63:69:b3:bb:dc:34:5b:d8:9b:eb:d8:33:d4
+                c3:45:d9:fb:fc:14:85:b5:36:b8:52:68:e0:f2:ee:de
+                46:5a:3c:f0:78:b5:ca:9f:c4:c3:eb:fb:b2:f7:7d:09
+                19:8a:07:04:da:99:74:ed:84:76:7b:2e:90:b0:52:e9
+                02:53:f9:08:5f:1b:fc:51:35:f3:55:5d:3d:d2:aa:87
+                cb:ef:84:5b:30:9e:29:13:14:a0:1d:6c:10:f9:af:7a
+                7a:87:59:25:99:30:c1:ee:e4:19:2d:ff:ae:4e:d4:c3
+                fd:a3:ac:52:f5:cb:25:bc:71:9b:82:05:ec:3b:bd:85
+                f4:2a:73:b6:39:44:ce:b4:a1:c7:cd:f4:94:87:ef:67
+                9a:32:ed:47:87:55:94:e1:17:a7:01:e7:13:99:c3:cd
+            public_exponent: 65537
+    issuer_unique_id: None
+    subject_unique_id: None
+    extensions: 
+        extn_id: authority_information_access
+        critical: False
+        extn_value: 
+            access_method: ocsp
+            access_location: http://ocsp.e.ca.evomonitors.com
+
+        extn_id: authority_key_identifier
+        critical: False
+        extn_value: 
+            key_identifier: 64:7f:75:2c:ca:a7:fb:4f:c9:64:d0:e0:42:cb:8a:62:97:39:15:e2
+            authority_cert_issuer: None
+            authority_cert_serial_number: None
+
+        extn_id: basic_constraints
+        critical: True
+        extn_value: 
+              ca: False
+            path_len_constraint: None
+
+        extn_id: crl_distribution_points
+        critical: False
+        extn_value: 
+            distribution_point: http://crl.e.ca.evomonitors.com/latest.crl
+            reasons: None
+            crl_issuer: None
+
+        extn_id: extended_key_usage
+        critical: True
+        extn_value: client_auth
+
+        extn_id: key_identifier
+        critical: False
+        extn_value: c2:61:9d:db:d5:7f:e0:98:f9:74:e5:0f:eb:4e:84:8b:05:fb:f6:b2
+
+        extn_id: key_usage
+        critical: True
+        extn_value: key_encipherment, digital_signature
+signature_algorithm: 
+    algorithm: sha512_rsa
+    parameters: None
+signature_value: 
+    21:d2:41:1d:b4:73:47:10:c1:bf:8b:1d:0d:30:ce:80
+    38:70:e3:71:8e:3c:8b:45:5e:95:f2:a6:01:a3:05:c6
+    a3:c9:31:3e:3d:db:9f:11:98:55:cf:2d:60:46:1d:ce
+    70:19:c0:77:5d:d0:64:61:bf:fe:c7:ad:92:1c:e1:a5
+    55:98:62:ba:9b:d7:d5:3d:5f:de:0a:e0:42:21:16:31
+    9f:71:e4:e3:dc:91:32:2e:4a:c7:6d:54:59:b5:e5:6f
+    58:6f:2e:f2:41:05:97:8a:48:f7:bd:e1:6d:f3:1e:91
+    a3:13:df:89:3b:95:6b:ef:11:34:d8:ca:bf:59:d2:c8
+    b2:69:07:f6:47:89:17:e9:b2:f5:8f:56:ab:5d:92:86
+    c8:61:5c:01:df:07:d1:6e:55:f6:1c:eb:1e:e9:d6:26
+    4d:15:7e:30:c5:1f:17:25:96:80:fb:37:b5:4f:cc:75
+    db:bd:9b:49:8a:b9:28:b4:d9:28:77:75:d1:e7:53:cd
+    04:a0:a6:f1:80:ba:d7:09:46:1d:72:1a:29:50:2e:cf
+    f0:36:a9:75:3b:dd:d2:24:ce:ed:87:63:d8:eb:55:1b
+    dc:41:7a:f6:bd:f4:25:d6:2b:a8:af:3e:1b:17:bc:70
+    63:39:db:52:7b:74:c5:b7:ca:1b:9e:56:e3:76:69:f7

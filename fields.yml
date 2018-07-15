@@ -1,0 +1,909 @@
+
+- key: beat
+  title: Beat
+  description: >
+    Contains common beat fields available in all event types.
+  fields:
+
+    - name: beat.name
+      description: >
+        The name of the Beat sending the log messages. If the Beat name is
+        set in the configuration file, then that value is used. If it is not
+        set, the hostname is used. To set the Beat name, use the `name`
+        option in the configuration file.
+    - name: beat.hostname
+      description: >
+        The hostname as returned by the operating system on which the Beat is
+        running.
+    - name: beat.timezone
+      description: >
+        The timezone as returned by the operating system on which the Beat is
+        running.
+    - name: beat.version
+      description: >
+        The version of the beat that generated this event.
+
+    - name: "@timestamp"
+      type: date
+      required: true
+      format: date
+      example: August 26th 2016, 12:35:53.332
+      description: >
+        The timestamp when the event log record was generated.
+
+    - name: tags
+      description: >
+        Arbitrary tags that can be set per Beat and per transaction
+        type.
+
+    - name: fields
+      type: object
+      object_type: keyword
+      description: >
+        Contains user configurable fields.
+
+    - name: error
+      type: group
+      description: >
+        Error fields containing additional info in case of errors.
+      fields:
+        - name: message
+          type: text
+          description: >
+            Error message.
+        - name: code
+          type: long
+          description: >
+            Error code.
+        - name: type
+          type: keyword
+          description: >
+            Error type.
+- key: cloud
+  title: Cloud provider metadata
+  description: >
+    Metadata from cloud providers added by the add_cloud_metadata processor.
+  fields:
+
+    - name: meta.cloud.provider
+      example: ec2
+      description: >
+        Name of the cloud provider. Possible values are ec2, gce, or digitalocean.
+
+    - name: meta.cloud.instance_id
+      description: >
+        Instance ID of the host machine.
+
+    - name: meta.cloud.instance_name
+      description: >
+        Instance name of the host machine.
+
+    - name: meta.cloud.machine_type
+      example: t2.medium
+      description: >
+        Machine type of the host machine.
+
+    - name: meta.cloud.availability_zone
+      example: us-east-1c
+      description: >
+        Availability zone in which this host is running.
+
+    - name: meta.cloud.project_id
+      example: project-x
+      description: >
+        Name of the project in Google Cloud.
+
+    - name: meta.cloud.region
+      description: >
+        Region in which this host is running.
+- key: docker
+  title: Docker
+  description: >
+    Docker stats collected from Docker.
+  short_config: false
+  anchor: docker-processor
+  fields:
+    - name: docker
+      type: group
+      fields:
+        - name: container.id
+          type: keyword
+          description: >
+            Unique container id.
+        - name: container.image
+          type: keyword
+          description: >
+            Name of the image the container was built on.
+        - name: container.name
+          type: keyword
+          description: >
+            Container name.
+        - name: container.labels
+          type: object
+          object_type: keyword
+          description: >
+            Image labels.
+- key: host
+  title: Host
+  description: >
+    Info collected for the host machine.
+  anchor: host-processor
+  fields:
+    - name: host
+      type: group
+      fields:
+        - name: name
+          type: keyword
+          description: >
+            Hostname.
+        - name: id
+          type: keyword
+          description: >
+            Unique host id.
+        - name: architecture
+          type: keyword
+          description: >
+            Host architecture (e.g. x86_64, arm, ppc, mips).
+        - name: os.platform
+          type: keyword
+          description: >
+            OS platform (e.g. centos, ubuntu, windows).
+        - name: os.version
+          type: keyword
+          description: >
+            OS version.
+        - name: os.family
+          type: keyword
+          description: >
+            OS family (e.g. redhat, debian, freebsd, windows).
+- key: kubernetes
+  title: Kubernetes
+  description: >
+    Kubernetes metadata added by the kubernetes processor
+  short_config: false
+  anchor: kubernetes-processor
+  fields:
+    - name: kubernetes
+      type: group
+      fields:
+        - name: pod.name
+          type: keyword
+          description: >
+            Kubernetes pod name
+
+        - name: namespace
+          type: keyword
+          description: >
+            Kubernetes namespace
+
+        - name: node.name
+          type: keyword
+          description: >
+            Kubernetes node name
+
+        - name: labels
+          type: object
+          description: >
+            Kubernetes labels map
+
+        - name: annotations
+          type: object
+          description: >
+            Kubernetes annotations map
+
+        - name: container.name
+          type: keyword
+          description: >
+            Kubernetes container name
+
+        - name: container.image
+          type: keyword
+          description: >
+            Kubernetes container image
+- key: rmqbeat
+  title: rmqbeat
+  description:
+  fields:
+    - name: rabbitmq
+      type: group
+      required: true
+      description: >
+        RabbitMQ Message Metadata.
+      fields:
+        - name: action
+          required: false
+          type: keyword
+          description: >
+            For tracing either 'publish' or 'deliver'. For normal consumer always 'receive'.
+
+        - name: channel
+          required: false
+          type: long
+          description: >
+            Channel number of the client which performed action (trace only).
+
+        - name: connection
+          required: false
+          type: keyword
+          description: >
+            Connection name of the client which performed action (trace only).
+
+        - name: user
+          required: false
+          type: keyword
+          description: >
+            User that performed the action (trace only).
+
+        - name: consumer_tag
+          type: keyword
+          description: >
+            Consumer tag (direct consume only).
+
+        - name: headers
+          type: group
+          description: >
+            Message header field table.
+          fields: {}
+
+        - name: exchange
+          type: text
+          required: false
+          description: >
+            Specifies the name of the exchange that the message was originally published to. May be empty, indicating the default exchange.
+
+        - name: queue
+          type: text
+          required: false
+          description: >
+            Specifies the name of the queue message was consumed from (tracer only).
+
+        - name: routed_queues
+          required: false
+          type: array
+          description: >
+            Specifies names of queues message was routed to (tracer only).
+
+        - name: redelivered
+          required: false
+          type: boolean
+          description: >
+            Specifies if message was redelivered.
+
+        - name: routing_key
+          type: keyword
+          required: false
+          description: >
+            Specifies the routing key name specified when the message was published.
+
+        - name: payload
+          type: group
+          description: >
+            Payload Information
+          fields:
+            - name: size
+              required: true
+              type: long
+              description: >
+                Size of payload in bytes
+            - name: body
+              required: false
+              type: text
+              description: >
+                Decoded payload body
+
+        - name: properties
+          type: group
+          description: >
+            AMQP message properties.
+          fields:
+            - name: app_id
+              required: false
+              type: keyword
+              description: >
+                Creating application id.
+
+            - name: content_encoding
+              required: false
+              type: keyword
+              description: >
+                MIME content encoding.
+
+            - name: content_type
+              required: false
+              type: keyword
+              description: >
+                MIME content type.
+
+            - name: correlation_id
+              required: false
+              type: text
+              description: >
+                Application correlation identifier.
+
+            - name: delivery_mode
+              type: keyword
+              required: false
+              description: >
+                Non-persistent (1) or persistent (2).
+
+            - name: expiration
+              required: false
+              description: >
+                Message expiration specification.
+
+            - name: message_id
+              type: text
+              required: false
+              description: >
+                Application message identifier.
+
+            - name: priority
+              required: false
+              type: keyword
+              description: >
+                Message priority, 0 to 9.
+
+            - name: reply_to
+              required: false
+              type: text
+              description: >
+                Address to reply to.
+
+            - name: timestamp
+              required: false
+              type: date
+              description: >
+                Message timestamp.
+
+            - name: type
+              required: false
+              type: keyword
+              description: >
+                Message type name.
+
+            - name: user_id
+              required: false
+              type: keyword
+              description: >
+                Creating user id.
+
+        - name: event
+          type: group
+          fields:
+          - name: binding
+            type: group
+            fields:
+            - name: created
+              type: group
+              fields:
+              - name: arguments
+                type: keyword
+              - name: destination_kind
+                type: keyword
+              - name: destination_name
+                type: keyword
+              - name: routing_key
+                type: keyword
+              - name: source_kind
+                type: keyword
+              - name: source_name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+            - name: deleted
+              type: group
+              fields:
+              - name: arguments
+                type: keyword
+              - name: destination_kind
+                type: keyword
+              - name: destination_name
+                type: keyword
+              - name: routing_key
+                type: keyword
+              - name: source_kind
+                type: keyword
+              - name: source_name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: channel
+            type: group
+            fields:
+            - name: closed
+              type: group
+              fields:
+              - name: pid
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+            - name: created
+              type: group
+              fields:
+              - name: connection
+                type: keyword
+              - name: name
+                type: keyword
+              - name: number
+                type: long
+              - name: pid
+                type: keyword
+              - name: user
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: connection
+            type: group
+            fields:
+            - name: closed
+              type: group
+              fields:
+              - name: client_properties
+                type: group
+                fields:
+                - name: capabilities
+                  type: group
+                  fields:
+                  - name: authentication_failure_close
+                    type: boolean
+                  - name: basic
+                    type: group
+                    fields:
+                    - name: nack
+                      type: boolean
+                  - name: connection
+                    type: group
+                    fields:
+                    - name: blocked
+                      type: boolean
+                  - name: consumer_cancel_notify
+                    type: boolean
+                  - name: exchange_exchange_bindings
+                    type: boolean
+                  - name: publisher_confirms
+                    type: boolean
+                - name: connection_name
+                  type: keyword
+                - name: copyright
+                  type: keyword
+                - name: information
+                  type: keyword
+                - name: platform
+                  type: keyword
+                - name: product
+                  type: keyword
+                - name: version
+                  type: keyword
+              - name: name
+                type: keyword
+              - name: node
+                type: keyword
+              - name: pid
+                type: keyword
+              - name: user_provided_name
+                type: keyword
+            - name: created
+              type: group
+              fields:
+              - name: auth_mechanism
+                type: keyword
+              - name: channel_max
+                type: long
+              - name: client_properties
+                type: group
+                fields:
+                - name: capabilities
+                  type: group
+                  fields:
+                  - name: authentication_failure_close
+                    type: boolean
+                  - name: basic
+                    type: group
+                    fields:
+                    - name: nack
+                      type: boolean
+                  - name: connection
+                    type: group
+                    fields:
+                    - name: blocked
+                      type: boolean
+                  - name: consumer_cancel_notify
+                    type: boolean
+                  - name: exchange_exchange_bindings
+                    type: boolean
+                  - name: publisher_confirms
+                    type: boolean
+                - name: connection_name
+                  type: keyword
+                - name: copyright
+                  type: keyword
+                - name: information
+                  type: keyword
+                - name: platform
+                  type: keyword
+                - name: product
+                  type: keyword
+                - name: version
+                  type: keyword
+              - name: connected_at
+                type: keyword
+              - name: frame_max
+                type: long
+              - name: host
+                type: keyword
+              - name: name
+                type: keyword
+              - name: node
+                type: keyword
+              - name: peer_cert_issuer
+                type: keyword
+              - name: peer_cert_subject
+                type: keyword
+              - name: peer_cert_validity
+                type: keyword
+              - name: peer_host
+                type: keyword
+              - name: peer_port
+                type: long
+              - name: pid
+                type: keyword
+              - name: port
+                type: long
+              - name: protocol
+                type: keyword
+              - name: ssl
+                type: boolean
+              - name: ssl_cipher
+                type: keyword
+              - name: ssl_hash
+                type: keyword
+              - name: ssl_key_exchange
+                type: keyword
+              - name: ssl_protocol
+                type: keyword
+              - name: timeout
+                type: long
+              - name: type
+                type: keyword
+              - name: user
+                type: keyword
+              - name: user_provided_name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: consumer
+            type: group
+            fields:
+            - name: created
+              type: group
+              fields:
+              - name: ack_required
+                type: boolean
+              - name: channel
+                type: keyword
+              - name: consumer_tag
+                type: keyword
+              - name: exclusive
+                type: boolean
+              - name: prefetch_count
+                type: long
+              - name: queue
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+            - name: deleted
+              type: group
+              fields:
+              - name: channel
+                type: keyword
+              - name: consumer_tag
+                type: keyword
+              - name: queue
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: exchange
+            type: group
+            fields:
+            - name: created
+              type: group
+              fields:
+              - name: arguments
+                type: keyword
+              - name: auto_delete
+                type: boolean
+              - name: durable
+                type: boolean
+              - name: internal
+                type: boolean
+              - name: name
+                type: keyword
+              - name: policy
+                type: keyword
+              - name: type
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+            - name: deleted
+              type: group
+              fields:
+              - name: name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: federation
+            type: group
+            fields:
+            - name: link
+              type: group
+              fields:
+              - name: status
+                type: group
+                fields:
+                - name: exchange
+                  type: keyword
+                - name: id
+                  type: keyword
+                - name: local_connection
+                  type: keyword
+                - name: status
+                  type: keyword
+                - name: timestamp
+                  type: keyword
+                - name: type
+                  type: keyword
+                - name: upstream
+                  type: keyword
+                - name: upstream_exchange
+                  type: keyword
+                - name: uri
+                  type: keyword
+                - name: vhost
+                  type: keyword
+          - name: node
+            type: group
+            fields:
+            - name: deleted
+              type: group
+              fields:
+              - name: node
+                type: keyword
+            - name: node
+              type: group
+              fields:
+              - name: deleted
+                type: group
+                fields:
+                - name: route
+                  type: keyword
+          - name: parameter
+            type: group
+            fields:
+            - name: cleared
+              type: group
+              fields:
+              - name: component
+                type: keyword
+              - name: name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+            - name: set
+              type: group
+              fields:
+              - name: component
+                type: keyword
+              - name: name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: value
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: permission
+            type: group
+            fields:
+            - name: created
+              type: group
+              fields:
+              - name: configure
+                type: keyword
+              - name: read
+                type: keyword
+              - name: user
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+              - name: write
+                type: keyword
+          - name: policy
+            type: group
+            fields:
+            - name: set
+              type: group
+              fields:
+              - name: apply-to
+                type: keyword
+              - name: definition
+                type: group
+                fields:
+                - name: expires
+                  type: long
+                - name: federation-upstream
+                  type: keyword
+                - name: ha-mode
+                  type: keyword
+                - name: ha-promote-on-failure
+                  type: keyword
+                - name: ha-promote-on-shutdown
+                  type: keyword
+                - name: ha-sync-mode
+                  type: keyword
+              - name: name
+                type: keyword
+              - name: pattern
+                type: keyword
+              - name: priority
+                type: long
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: queue
+            type: group
+            fields:
+            - name: created
+              type: group
+              fields:
+              - name: arguments
+                type: keyword
+              - name: auto_delete
+                type: boolean
+              - name: durable
+                type: boolean
+              - name: exclusive
+                type: boolean
+              - name: name
+                type: keyword
+              - name: owner_pid
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+            - name: deleted
+              type: group
+              fields:
+              - name: name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+              - name: vhost
+                type: keyword
+          - name: shovel
+            type: group
+            fields:
+            - name: worker
+              type: group
+              fields:
+              - name: status
+                type: group
+                fields:
+                - name: dest_exchange
+                  type: keyword
+                - name: dest_protocol
+                  type: keyword
+                - name: dest_uri
+                  type: keyword
+                - name: name
+                  type: keyword
+                - name: src_protocol
+                  type: keyword
+                - name: src_queue
+                  type: keyword
+                - name: src_uri
+                  type: keyword
+                - name: status
+                  type: keyword
+                - name: vhost
+                  type: keyword
+          - name: type
+            type: keyword
+          - name: user
+            type: group
+            fields:
+            - name: authentication
+              type: group
+              fields:
+              - name: success
+                type: group
+                fields:
+                - name: auth_mechanism
+                  type: keyword
+                - name: connection_name
+                  type: keyword
+                - name: connection_type
+                  type: keyword
+                - name: host
+                  type: keyword
+                - name: name
+                  type: keyword
+                - name: peer_cert_issuer
+                  type: keyword
+                - name: peer_cert_subject
+                  type: keyword
+                - name: peer_cert_validity
+                  type: keyword
+                - name: peer_host
+                  type: keyword
+                - name: peer_port
+                  type: long
+                - name: protocol
+                  type: keyword
+                - name: ssl
+                  type: boolean
+                - name: ssl_cipher
+                  type: keyword
+                - name: ssl_protocol
+                  type: keyword
+            - name: created
+              type: group
+              fields:
+              - name: name
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+            - name: password
+              type: group
+              fields:
+              - name: changed
+                type: group
+                fields:
+                - name: name
+                  type: keyword
+                - name: user_who_performed_action
+                  type: keyword
+            - name: tags
+              type: group
+              fields:
+              - name: set
+                type: group
+                fields:
+                - name: name
+                  type: keyword
+                - name: user_who_performed_action
+                  type: keyword
+          - name: vhost
+            type: group
+            fields:
+            - name: down
+              type: group
+              fields:
+              - name: name
+                type: keyword
+              - name: node
+                type: keyword
+              - name: user_who_performed_action
+                type: keyword
+

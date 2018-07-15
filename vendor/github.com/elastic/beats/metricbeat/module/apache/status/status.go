@@ -2,11 +2,9 @@
 package status
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/metricbeat/helper"
 	"github.com/elastic/beats/metricbeat/mb"
 	"github.com/elastic/beats/metricbeat/mb/parse"
 )
@@ -37,41 +35,37 @@ var (
 )
 
 func init() {
-	if err := mb.Registry.AddMetricSet("apache", "status", New, hostParser); err != nil {
-		panic(err)
-	}
+	mb.Registry.MustAddMetricSet("apache", "status", New,
+		mb.WithHostParser(hostParser),
+		mb.DefaultMetricSet(),
+	)
 }
 
 // MetricSet for fetching Apache HTTPD server status.
 type MetricSet struct {
 	mb.BaseMetricSet
-	client *http.Client // HTTP client that is reused across requests.
+	http *helper.HTTP
 }
 
 // New creates new instance of MetricSet.
 func New(base mb.BaseMetricSet) (mb.MetricSet, error) {
+	http, err := helper.NewHTTP(base)
+	if err != nil {
+		return nil, err
+	}
 	return &MetricSet{
-		BaseMetricSet: base,
-		client:        &http.Client{Timeout: base.Module().Config().Timeout},
+		base,
+		http,
 	}, nil
 }
 
-// Fetch makes an HTTP request to fetch status metrics from the mod_status
-// endpoint.
+// Fetch makes an HTTP request to fetch status metrics from the mod_status endpoint.
 func (m *MetricSet) Fetch() (common.MapStr, error) {
-	req, err := http.NewRequest("GET", m.HostData().SanitizedURI, nil)
-	if m.HostData().User != "" || m.HostData().Password != "" {
-		req.SetBasicAuth(m.HostData().User, m.HostData().Password)
-	}
-	resp, err := m.client.Do(req)
+	scanner, err := m.http.FetchScanner()
 	if err != nil {
-		return nil, fmt.Errorf("error making http request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, resp.Status)
+		return nil, err
 	}
 
-	return eventMapping(resp.Body, m.Host()), nil
+	data, _ := eventMapping(scanner, m.Host())
+	return data, nil
 }

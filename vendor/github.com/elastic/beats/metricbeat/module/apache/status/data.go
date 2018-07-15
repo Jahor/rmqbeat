@@ -2,13 +2,12 @@ package status
 
 import (
 	"bufio"
-	"io"
 	"regexp"
 	"strings"
 
 	"github.com/elastic/beats/libbeat/common"
-	s "github.com/elastic/beats/metricbeat/schema"
-	c "github.com/elastic/beats/metricbeat/schema/mapstrstr"
+	s "github.com/elastic/beats/libbeat/common/schema"
+	c "github.com/elastic/beats/libbeat/common/schema/mapstrstr"
 )
 
 var (
@@ -39,23 +38,55 @@ var (
 			"children_system": c.Float("CPUChildrenSystem"),
 		},
 		"connections": s.Object{
-			"total": c.Int("ConnsTotal"),
+			"total": c.Int("ConnsTotal", s.Optional),
 			"async": s.Object{
-				"writing":    c.Int("ConnsAsyncWriting"),
-				"keep_alive": c.Int("ConnsAsyncKeepAlive"),
-				"closing":    c.Int("ConnsAsyncClosing"),
+				"writing":    c.Int("ConnsAsyncWriting", s.Optional),
+				"keep_alive": c.Int("ConnsAsyncKeepAlive", s.Optional),
+				"closing":    c.Int("ConnsAsyncClosing", s.Optional),
 			},
 		},
 		"load": s.Object{
-			"1":  c.Float("Load1"),
-			"5":  c.Float("Load5"),
-			"15": c.Float("Load15"),
+			"1":  c.Float("Load1", s.Optional),
+			"5":  c.Float("Load5", s.Optional),
+			"15": c.Float("Load15", s.Optional),
+		},
+	}
+
+	// Schema used till apache 2.4.12
+	schemaOld = s.Schema{
+		"total_accesses":   c.Int("Total Accesses"),
+		"total_kbytes":     c.Int("Total kBytes"),
+		"requests_per_sec": c.Float("ReqPerSec", s.Optional),
+		"bytes_per_sec":    c.Float("BytesPerSec", s.Optional),
+		"workers": s.Object{
+			"busy": c.Int("BusyWorkers"),
+			"idle": c.Int("IdleWorkers"),
+		},
+		"uptime": s.Object{
+			"uptime": c.Int("Uptime"),
+		},
+		"connections": s.Object{
+			"total": c.Int("ConnsTotal", s.Optional),
+			"async": s.Object{
+				"writing":    c.Int("ConnsAsyncWriting", s.Optional),
+				"keep_alive": c.Int("ConnsAsyncKeepAlive", s.Optional),
+				"closing":    c.Int("ConnsAsyncClosing", s.Optional),
+			},
 		},
 	}
 )
 
+func applySchema(event common.MapStr, fullEvent map[string]interface{}) *s.Errors {
+	applicableSchema := schema
+	if _, found := fullEvent["ServerUptimeSeconds"]; !found {
+		applicableSchema = schemaOld
+	}
+	_, err := applicableSchema.ApplyTo(event, fullEvent)
+	return err
+}
+
 // Map body to MapStr
-func eventMapping(body io.ReadCloser, hostname string) common.MapStr {
+func eventMapping(scanner *bufio.Scanner, hostname string) (common.MapStr, *s.Errors) {
 	var (
 		totalS          int
 		totalR          int
@@ -72,7 +103,6 @@ func eventMapping(body io.ReadCloser, hostname string) common.MapStr {
 	)
 
 	fullEvent := map[string]interface{}{}
-	scanner := bufio.NewScanner(body)
 
 	// Iterate through all events to gather data
 	for scanner.Scan() {
@@ -142,9 +172,8 @@ func eventMapping(body io.ReadCloser, hostname string) common.MapStr {
 			"total":                  totalAll,
 		},
 	}
-	schema.ApplyTo(event, fullEvent)
 
-	return event
+	return event, applySchema(event, fullEvent)
 }
 
 /*

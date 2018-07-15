@@ -215,13 +215,19 @@ type ConsumerConfig struct {
 	Ack bool `config:"ack"`
 
 	// Mode for reading messages produced by RabbitMQ tracer published on
-	// amq.rabbitmq.trace exchange.
-	// Event produced will look like if it was received directly
+	// amq.rabbitmq.trace exchange or logs from amq.rabbitmq.log.
+	//
+	// trace: Event produced will look like if it was received directly
 	// And adding some more information like user, connection, channel
 	// When true automatically populates exchange and routing key
 	//
-	// Default: false
-	TracerMode bool `config:"tracer"`
+	// log: sets `level` from routing_key, `message` from body
+	//
+	// Default: none
+	Mode string `config:"mode"`
+
+
+	Exclude []string `config:"exclude"`
 
 	common.EventMetadata `config:",inline"` // Fields and tags to add to events.
 }
@@ -252,7 +258,7 @@ var DefaultConsumerConfig = ConsumerConfig{
 	PrefetchCount: 256,
 	Connection:    DefaultConnectionConfig,
 	Ack:           true,
-	TracerMode:    false,
+	Mode:          "",
 	Exchange:      DefaultExchangeConfig,
 	Queue:         DefaultQueueConfig,
 }
@@ -263,15 +269,58 @@ var DefaultTracerConsumerConfig = ConsumerConfig{
 	PrefetchCount: 256,
 	Connection:    DefaultConnectionConfig,
 	Ack:           true,
-	TracerMode:    false,
+	Mode:          "trace",
 	Exchange:      DefaultTraceExchangeConfig,
 	Queue:         DefaultQueueConfig,
 	RoutingKey:    "#",
 }
 
+// DefaultLoggerConsumerConfig contains consumer configuration in logger mode
+var DefaultLoggerConsumerConfig = ConsumerConfig{
+	DocumentType:  "rmq_log",
+	PrefetchCount: 256,
+	Connection:    DefaultConnectionConfig,
+	Ack:           true,
+	Mode:          "log",
+	Exchange:      DefaultLoggerExchangeConfig,
+	Queue:         DefaultQueueConfig,
+	RoutingKey:    "#",
+}
+
+// DefaultEventConsumerConfig contains consumer configuration in event mode
+var DefaultEventConsumerConfig = ConsumerConfig{
+	DocumentType:  "rmq_event",
+	PrefetchCount: 256,
+	Connection:    DefaultConnectionConfig,
+	Ack:           true,
+	Mode:          "log",
+	Exchange:      DefaultEventExchangeConfig,
+	Queue:         DefaultQueueConfig,
+	RoutingKey:    "#",
+	Exclude:       []string{},
+}
+
 // DefaultTraceExchangeConfig contains exchange configuration in tracer mode
 var DefaultTraceExchangeConfig = ExchangeConfig{
 	Name:       "amq.rabbitmq.trace",
+	Durable:    true,
+	AutoDelete: false,
+	Internal:   true,
+	Passive:    false,
+}
+
+// DefaultLoggerExchangeConfig contains exchange configuration in logger mode
+var DefaultLoggerExchangeConfig = ExchangeConfig{
+	Name:       "amq.rabbitmq.log",
+	Durable:    true,
+	AutoDelete: false,
+	Internal:   true,
+	Passive:    false,
+}
+
+// DefaultEventExchangeConfig contains exchange configuration in event mode
+var DefaultEventExchangeConfig = ExchangeConfig{
+	Name:       "amq.rabbitmq.event",
 	Durable:    true,
 	AutoDelete: false,
 	Internal:   true,

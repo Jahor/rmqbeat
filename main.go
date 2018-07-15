@@ -3,14 +3,11 @@ package main
 import (
 	"os"
 
-	"github.com/elastic/beats/libbeat/beat"
-
-	"github.com/jahor/rmqbeat/beater"
+	"github.com/jahor/rmqbeat/cmd"
 )
 
 func main() {
-	err := beat.Run("rmqbeat", "", beater.New)
-	if err != nil {
+	if err := cmd.RootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

@@ -14,6 +14,27 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.5.1]
+
+### Fixed
+- Fix: an issue with the Cyclic reference algorithm when a direct reference was pointing
+  to another reference. #100
+
+## [0.5.0]
+
+### Added
+- Detect cyclic reference and allow to search top level key with the other resolvers. #97
+- Allow to diff keys of two different configuration #93
+
+## [0.4.6]
+
+### Added
+- Introduce ,ignore struct tag option to optionally ignore exported fields. #89
+- Add support for custom Unpacker method with `*Config` being convertible to first parameter. The custom method must be compatible to `ConfigUnpacker`. #90
+
+### Fixed
+- Ignore private struct fields when merging a struct into a config. #89
+
 ## [0.4.5]
 
 ### Changed
@@ -25,7 +46,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.4.4]
 
 ### Added
-- Add support for pure array config files #82 
+- Add support for pure array config files #82
 
 ### Changed
 - Invalid top-level types return non-critical error (no stack-trace) on merge #82
@@ -168,7 +189,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Introduced CHANGELOG.md for documenting changes to ucfg.
 
 
-[Unreleased]: https://github.com/elastic/go-ucfg/compare/v0.4.5...HEAD
+[Unreleased]: https://github.com/elastic/go-ucfg/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/elastic/go-ucfg/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/elastic/go-ucfg/compare/v0.4.6...v0.5.0
+[0.4.6]: https://github.com/elastic/go-ucfg/compare/v0.4.5...v0.4.6
 [0.4.5]: https://github.com/elastic/go-ucfg/compare/v0.4.4...v0.4.5
 [0.4.4]: https://github.com/elastic/go-ucfg/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/elastic/go-ucfg/compare/v0.4.2...v0.4.3

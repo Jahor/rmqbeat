@@ -20,8 +20,11 @@ type AMQPProperties struct {
 
 // Payload is a container for message payload
 type Payload struct {
-	Size int         `json:"size"`
-	Body interface{} `json:"body"`
+	Size      int         `json:"size,omitempty"`
+	Body      string      `json:"body,omitempty"`
+	Json      interface{} `json:"json,omitempty"`
+	Type      *string     `json:"type,omitempty"`
+	Timestamp *time.Time  `json:"timestamp,omitempty"`
 }
 
 // RabbitMQEvent contains information about a single AMQP message (or event relating to the message in tracer mode)
