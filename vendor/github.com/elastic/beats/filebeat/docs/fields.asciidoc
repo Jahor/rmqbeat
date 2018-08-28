@@ -29,8 +29,10 @@ grouped in the following categories:
 * <<exported-fields-nginx>>
 * <<exported-fields-osquery>>
 * <<exported-fields-postgresql>>
+* <<exported-fields-rabbitmq>>
 * <<exported-fields-redis>>
 * <<exported-fields-system>>
+* <<exported-fields-tomcat>>
 * <<exported-fields-traefik>>
 
 --
@@ -2813,6 +2815,56 @@ The logged message.
 
 --
 
+[[exported-fields-rabbitmq]]
+== rabbitmq fields
+
+rabbitmq Module
+
+
+
+[float]
+== rabbitmq fields
+
+
+
+
+[float]
+== log fields
+
+Contains fields for the RabbitMQ logs.
+
+
+
+*`rabbitmq.log.level`*::
++
+--
+type: keyword
+
+Severity level
+
+
+--
+
+*`rabbitmq.log.pid`*::
++
+--
+type: text
+
+Process PID
+
+
+--
+
+*`rabbitmq.log.message`*::
++
+--
+type: text
+
+Log Message
+
+
+--
+
 [[exported-fields-redis]]
 == Redis fields
 
@@ -3289,6 +3341,459 @@ The PID of the process that sent the syslog message.
 type: text
 
 The message in the log line.
+
+
+--
+
+[[exported-fields-tomcat]]
+== tomcat fields
+
+tomcat Module
+
+
+
+[float]
+== tomcat fields
+
+
+
+
+[float]
+== access fields
+
+Contains fields for the Apache2 HTTPD access logs.
+
+
+
+*`tomcat.access.remote_ip`*::
++
+--
+type: keyword
+
+Client IP address.
+
+
+--
+
+*`tomcat.access.user_name`*::
++
+--
+type: keyword
+
+The user name used when basic authentication is used.
+
+
+--
+
+*`tomcat.access.method`*::
++
+--
+type: keyword
+
+example: GET
+
+The request HTTP method.
+
+
+--
+
+*`tomcat.access.url`*::
++
+--
+type: keyword
+
+The request HTTP URL.
+
+
+--
+
+*`tomcat.access.context`*::
++
+--
+type: keyword
+
+Application context
+
+
+--
+
+*`tomcat.access.path`*::
++
+--
+type: keyword
+
+Requested path
+
+
+--
+
+*`tomcat.access.http_version`*::
++
+--
+type: keyword
+
+The HTTP version.
+
+
+--
+
+*`tomcat.access.response_code`*::
++
+--
+type: long
+
+The HTTP response code.
+
+
+--
+
+*`tomcat.access.body_sent.bytes`*::
++
+--
+type: long
+
+format: bytes
+
+The number of bytes of the server response body.
+
+
+--
+
+*`tomcat.access.processing_time`*::
++
+--
+type: long
+
+format: duration.ms
+
+Processing time
+
+
+--
+
+[float]
+== geoip fields
+
+Contains GeoIP information gathered based on the remote_ip field. Only present if the GeoIP Elasticsearch plugin is available and used.
+
+
+
+*`tomcat.access.geoip.continent_name`*::
++
+--
+type: keyword
+
+The name of the continent.
+
+
+--
+
+*`tomcat.access.geoip.country_iso_code`*::
++
+--
+type: keyword
+
+Country ISO code.
+
+
+--
+
+*`tomcat.access.geoip.location`*::
++
+--
+type: geo_point
+
+The longitude and latitude.
+
+
+--
+
+*`tomcat.access.geoip.region_name`*::
++
+--
+type: keyword
+
+The region name.
+
+
+--
+
+*`tomcat.access.geoip.city_name`*::
++
+--
+type: keyword
+
+The city name.
+
+
+--
+
+[float]
+== log fields
+
+Contains fields for the Apache2 HTTPD access logs.
+
+
+
+*`tomcat.log.remote_ip`*::
++
+--
+type: keyword
+
+Client IP address.
+
+
+--
+
+*`tomcat.log.user_name`*::
++
+--
+type: keyword
+
+The user name used when basic authentication is used.
+
+
+--
+
+*`tomcat.log.method`*::
++
+--
+type: keyword
+
+example: GET
+
+The request HTTP method.
+
+
+--
+
+*`tomcat.log.path`*::
++
+--
+type: keyword
+
+Requested path
+
+
+--
+
+*`tomcat.log.response_code`*::
++
+--
+type: long
+
+The HTTP response code.
+
+
+--
+
+*`tomcat.log.processing_time`*::
++
+--
+type: long
+
+format: duration.ms
+
+Processing time
+
+
+--
+
+*`tomcat.log.message`*::
++
+--
+type: text
+
+Logged Message
+
+
+--
+
+*`tomcat.log.logger`*::
++
+--
+type: keyword
+
+format: string
+
+Logger that produced the message
+
+
+--
+
+*`tomcat.log.thread`*::
++
+--
+type: text
+
+Thread name
+
+
+--
+
+*`tomcat.log.level`*::
++
+--
+type: keyword
+
+Severity level
+
+
+--
+
+*`tomcat.log.level_value`*::
++
+--
+type: long
+
+Severity level numeric value
+
+
+--
+
+[float]
+== query fields
+
+Query
+
+
+*`tomcat.log.name`*::
++
+--
+type: keyword
+
+Request Name
+
+
+--
+
+[float]
+== user fields
+
+User Information
+
+
+
+*`tomcat.log.user.type`*::
++
+--
+type: keyword
+
+User type
+
+
+--
+
+*`tomcat.log.user.id`*::
++
+--
+type: keyword
+
+User ID
+
+
+--
+
+*`tomcat.log.mapping`*::
++
+--
+type: keyword
+
+Mapping name of a request
+
+
+--
+
+*`tomcat.log.request_id`*::
++
+--
+type: keyword
+
+Request ID
+
+
+--
+
+[float]
+== app fields
+
+Application information
+
+
+
+*`tomcat.log.app.name`*::
++
+--
+type: keyword
+
+Application name
+
+
+--
+
+*`tomcat.log.app.version`*::
++
+--
+type: keyword
+
+Application version
+
+
+--
+
+[float]
+== geoip fields
+
+Contains GeoIP information gathered based on the remote_ip field. Only present if the GeoIP Elasticsearch plugin is available and used.
+
+
+
+*`tomcat.log.geoip.continent_name`*::
++
+--
+type: keyword
+
+The name of the continent.
+
+
+--
+
+*`tomcat.log.geoip.country_iso_code`*::
++
+--
+type: keyword
+
+Country ISO code.
+
+
+--
+
+*`tomcat.log.geoip.location`*::
++
+--
+type: geo_point
+
+The longitude and latitude.
+
+
+--
+
+*`tomcat.log.geoip.region_name`*::
++
+--
+type: keyword
+
+The region name.
+
+
+--
+
+*`tomcat.log.geoip.city_name`*::
++
+--
+type: keyword
+
+The city name.
 
 
 --

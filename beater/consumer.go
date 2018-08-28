@@ -264,7 +264,7 @@ func NewConsumer(cfg *common.Config, client beat.Client, name string, version st
 	switch mode {
 	case trace:
 		maker = func(c *Consumer, d amqp.Delivery) *beat.Event {
-			return makeTraceEvent(c, d, consumerConfig.DocumentType, func(documentType string, rmqEvent RabbitMQEvent) common.MapStr {
+			return makeTraceEvent(c, d, consumerConfig.DocumentType, func(c *Consumer, documentType string, rmqEvent RabbitMQEvent) common.MapStr {
 				return common.MapStr{
 					"type":     documentType,
 					"rabbitmq": rmqEvent,
@@ -578,7 +578,7 @@ func optionalTable(something interface{}) amqp.Table {
 	return something.(amqp.Table)
 }
 
-func makeTraceEvent(c *Consumer, d amqp.Delivery, documentType string, transform func(documentType string, event RabbitMQEvent) common.MapStr) *beat.Event {
+func makeTraceEvent(c *Consumer, d amqp.Delivery, documentType string, transform func(c *Consumer, documentType string, event RabbitMQEvent) common.MapStr) *beat.Event {
 
 	switch d.Headers["exchange_name"] {
 	case
@@ -612,9 +612,10 @@ func makeTraceEvent(c *Consumer, d amqp.Delivery, documentType string, transform
 		ts := time.Unix(int64(mayBeRealTimestamp.(int32)), 0)
 		realTimestamp = &ts
 	}
+	var hash = sha256.Sum256(d.Body)
 	return &beat.Event{
 		Timestamp: timestamp,
-		Fields: transform(documentType,
+		Fields: transform(c, documentType,
 			RabbitMQEvent{
 				Properties: AMQPProperties{
 					ContentType:     optionalString(realProperties["content_type"]),
@@ -640,15 +641,17 @@ func makeTraceEvent(c *Consumer, d amqp.Delivery, documentType string, transform
 				Exchange:     d.Headers["exchange_name"].(string),
 				Redelivered:  extractBool(d.Headers["redelivered"]),
 				RoutingKey:   (*optionalStringArray(d.Headers["routing_keys"]))[0],
+				VHost:        c.config.Connection.Vhost,
 				Payload: Payload{
 					Size: len(d.Body),
 					Body: payloadBody,
+					Hash: hex.EncodeToString(hash[:]),
 				},
 			}),
 	}
 }
 
-func transformEvoTrace(documentType string, rmqEvent RabbitMQEvent) common.MapStr {
+func transformEvoTrace(c *Consumer, documentType string, rmqEvent RabbitMQEvent) common.MapStr {
 	var fields = common.MapStr{}
 	common.AddTags(fields, []string{"rmq_message"})
 	var deviceId = optionalString(rmqEvent.Headers["device_id"])
@@ -681,9 +684,11 @@ func transformEvoTrace(documentType string, rmqEvent RabbitMQEvent) common.MapSt
 
 		if err == nil {
 			var key = ""
-			for k := range body {
-				key = k
-				break
+			if len(body) == 1 {
+				for k := range body {
+					key = k
+					break
+				}
 			}
 
 			if key != "" {
@@ -696,9 +701,9 @@ func transformEvoTrace(documentType string, rmqEvent RabbitMQEvent) common.MapSt
 					}
 				}
 				if key == "create" || key == "update" || key == "delete" {
-					fields.Put("type", documentType+"_"+key+"_"+content["type"].(string))
+					key = key + "_" + content["type"].(string)
 				} else if key == "parameter" {
-					fields.Put("type", documentType+"_parameter")
+					key = key + "_" + content["name"].(string)
 					rawValue := content["value"].(string)
 					var value = common.MapStr{"raw": rawValue}
 					intValue, intErr := strconv.Atoi(rawValue)
@@ -712,22 +717,32 @@ func transformEvoTrace(documentType string, rmqEvent RabbitMQEvent) common.MapSt
 					}
 
 					content["value"] = value
-				} else {
-					fields.Put("type", documentType+"_"+key)
 				}
 
-				body[key] = content
+				body = map[string]interface{}{key: content,}
 				rmqEvent.Payload.Type = &key
 			}
 			rmqEvent.Payload.Json = body
 		}
+		if c.config.IncludeMessage {
+			fields.Put("message", fmt.Sprintf("JSON Message: %s", rmqEvent.Payload.Body))
+		}
+	} else if rmqEvent.Properties.ContentType != nil && strings.HasPrefix(*rmqEvent.Properties.ContentType, "text/") {
+		var key = "text"
+		rmqEvent.Payload.Type = &key
+		if c.config.IncludeMessage {
+			fields.Put("message", "Message: "+rmqEvent.Payload.Body)
+		}
 	} else {
 		var key = "binary"
-		var hash = sha256.Sum256([]byte(rmqEvent.Payload.Body))
-		rmqEvent.Payload.Body = hex.EncodeToString(hash[:])
 		rmqEvent.Payload.Type = &key
+		rmqEvent.Payload.Body = "<<binary>>"
+		if c.config.IncludeMessage {
+			fields.Put("message", fmt.Sprintf("Binary Message (%d bytes): %s", rmqEvent.Payload.Size, rmqEvent.Payload.Hash))
+		}
 	}
 	fields["rabbitmq"] = rmqEvent
+
 	return fields
 }
 
@@ -819,6 +834,26 @@ func makeEventEvent(c *Consumer, d amqp.Delivery, documentType string) *beat.Eve
 		d.Headers["protocol"] = parseProtocol(protocol.(string))
 	}
 
+	/*error, ok := d.Headers["error"]
+	if ok {
+		d.Headers["error"] = parseProtocol(protocol.(string))
+	}*/
+
+	value, ok := d.Headers["value"]
+	if ok {
+		switch value.(type) {
+		default:
+			b, err := json.Marshal(value)
+			if err != nil {
+				d.Headers["value"] = fmt.Sprintf("%#v", value)
+			} else {
+				d.Headers["value"] = string(b)
+			}
+		case string:
+			// Do nothing
+		}
+	}
+
 	connectedAt := optionalInt(d.Headers["connected_at"])
 	if connectedAt != nil {
 		d.Headers["connected_at"] = parseTimestampMs(*connectedAt)
@@ -837,15 +872,36 @@ func makeEventEvent(c *Consumer, d amqp.Delivery, documentType string) *beat.Eve
 
 	eventDetails.Put(d.RoutingKey, d.Headers)
 
+	fields := common.MapStr{
+		"type": documentType,
+		"rabbitmq": common.MapStr{
+			"event": eventDetails,
+		},
+		"node": optionalString(d.Headers["node"]),
+	}
+
+	user, ok := d.Headers["user"]
+	if !ok {
+		user, ok = d.Headers["user_who_performed_action"]
+	}
+	if ok && strings.Contains(user.(string), "::") {
+		userName := user.(string)
+		var deviceIdParts = strings.SplitN(userName, "::", 2)
+		var userType = strings.ToUpper(deviceIdParts[0])
+		var userId, userIdErr = strconv.Atoi(deviceIdParts[1])
+		if userIdErr == nil {
+			fields.Put("user_type", userType)
+			fields.Put("user_id", userId)
+		}
+	}
+
+	if c.config.IncludeMessage {
+		fields.Put("message", "Event: "+d.RoutingKey)
+	}
+
 	return &beat.Event{
 		Timestamp: timestamp,
-		Fields: common.MapStr{
-			"type": documentType,
-			"rabbitmq": common.MapStr{
-				"event": eventDetails,
-			},
-			"node": optionalString(d.Headers["node"]),
-		},
+		Fields:    fields,
 	}
 }
 

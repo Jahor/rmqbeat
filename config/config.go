@@ -226,6 +226,8 @@ type ConsumerConfig struct {
 	// Default: none
 	Mode string `config:"mode"`
 
+	IncludeMessage bool `config:"with_message"`
+
 
 	Exclude []string `config:"exclude"`
 

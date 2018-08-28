@@ -22,6 +22,7 @@ type AMQPProperties struct {
 type Payload struct {
 	Size      int         `json:"size,omitempty"`
 	Body      string      `json:"body,omitempty"`
+	Hash      string      `json:"hash,omitempty"`
 	Json      interface{} `json:"json,omitempty"`
 	Type      *string     `json:"type,omitempty"`
 	Timestamp *time.Time  `json:"timestamp,omitempty"`
@@ -29,6 +30,7 @@ type Payload struct {
 
 // RabbitMQEvent contains information about a single AMQP message (or event relating to the message in tracer mode)
 type RabbitMQEvent struct {
+	VHost		 string 				`json:"vhost"`
 	Properties   AMQPProperties         `json:"properties"`
 	Headers      map[string]interface{} `json:"headers"`
 	Action       string                 `json:"action"`
